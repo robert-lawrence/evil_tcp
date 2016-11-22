@@ -41,6 +41,10 @@ class Connection:
     ##should add the data to the output buffer, then handle it when appropriate
     def send(data):
 
+    ##send a FIN, set state appropriately
+    def close():
+
+
     ##thread that handles the output buffer, adding its requests to the socket
     ##when the sliding window allows
     def outputManager():
