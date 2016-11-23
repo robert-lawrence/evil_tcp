@@ -4,22 +4,23 @@
 ###Outline for socket.py
 
 import socket
-import dummy_threading
+import threading
+import queue
 
 class Evil:
     BUFSIZE = 1000
-    PORT = 0
-    HOST = 0
-    MAXWIN = 1
-    connections = []
-    connectionsLock = threading.lock()
-    unknownPackets = queue.Queue()
+    DEFAULTMAXWIN = 1
 
     def __init__(self, host, port):
+
+        self.connections = []
+        self.connectionsLock = threading.Lock()
+        self.unknownPackets = queue.Queue()
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        PORT = port
-        HOST = host
-        sock.bind(HOST, PORT)
+        self.port = port
+        self.host = host
+        sock.bind(self.host, self.port)
         mainThread = threading.Thread(None, main, mainThread)
         mainThread.start()
 
@@ -35,9 +36,9 @@ class Evil:
         unknownPacket = unknownPackets.get()
 
         connectionsLock.acquire()
-        newConn = connection(MAXWIN, STATE.SYN_RECV, unknownPacket[1]])
-        connections[(address, CONN)] = newConn
-        connectionsLock.release()
+        newConn = Connection(Evil.DEFAULTMAXWIN, STATE.SYN_RECV, unknownPacket[1])
+        self.connections[(address, CONN)] = newConn
+        self.connectionsLock.release()
 
         return newConn
 
@@ -52,17 +53,17 @@ class Evil:
         Errors: if socket closed, throw exception
         """
         connectionsLock.acquire()
-        newConn = connection(MAXWIN, STATE.SYN_RECV, (host, port))
+        newConn = connection(Evil.DEFAULTMAXWIN, STATE.SYN_RECV, (host, port))
         connections[(address, CONN)] = newConn
         connectionsLock.release()
         pass
 
 
     def main(self):
-        print "mainThread started on port " + PORT
+        debugLog("mainThread started on port " + PORT)
 
         while True:
-            msg, address = sock.recvfrom(BUFSIZE)
+            msg, address = sock.recvfrom(Evil.BUFSIZE)
             if address in connections:
                 connectionsLock.acquire()
                 connections[(address, CONN)].handleIncoming(msg)

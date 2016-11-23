@@ -13,10 +13,17 @@ from enum import Enum
 
 class STATE(Enum):
     CLOSED = 1,
-    LISTEN = CLOSED + 1,
-    SYN_RECV = LISTEN + 1,
-    SYN_SENT = SYN_RECV + 1,
-    ##etc
+    LISTEN = CLOSED << 1,
+    SYN_RECV = LISTEN << 1,
+    SYN_SENT = SYN_RECV << 1,
+    ESTABLISHED = SYN_SENT << 1,
+    FIN_WAIT_1 = ESTABLISHED << 1,
+    FIN_WAIT_2 = FIN_WAIT_1 << 1,
+    FIN_CLOSING = FIN_WAIT_2 << 1,
+    TIME_WAIT = FIN_CLOSING << 1,
+    CLOSE_WAIT = TIME_WAIT << 1,
+    LAST_ACK = CLOSE_WAIT << 1,
+    CLOSED = LAST_ACK << 1
 
 
 class Connection:
@@ -26,7 +33,19 @@ class Connection:
 
     ##constructor, needs max window size for requirements and state for bidir
     ##should also initialize buffers etc
-    def __init__(self, maxWindowSize, state, address):
+    otherAddress = ("not initialized", 0)
+    maxWindowSize = 1
+    state = STATE.CLOSED
+
+    outBuffer = []
+    inBuffer = []
+
+    def __init__(self, maxWindowSize, state, otherAddress):
+        self.maxWindowSize = maxWindowSize
+        self.state = state
+        self.otherAddress = otherAddress
+
+
 
     ##called by the socket on each connection passing in a packet that was
     ##sent to the connection, could be an ack or data, checksum has been done
