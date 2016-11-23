@@ -11,6 +11,7 @@
 
 from enum import Enum
 import queue
+from util import EVILPacket
 
 class STATE(Enum):
     CLOSED = 1,
@@ -32,21 +33,6 @@ class Connection:
     ##member variables are window size, max window size, in/out buffers, and
     ##a state enum
 
-    ##constructor, needs max window size for requirements and state for bidir
-    ##should also initialize buffers etc
-    otherAddress = ("not initialized", 0)
-    maxWindowSize = 1
-    state = STATE.CLOSED
-
-    seq = 0
-    ack = 0
-
-    ### Threading Queues:
-
-    dgram_queue_in = queue.Queue()
-    dgram_queue_out = queue.Queue()
-    str_queue_in = queue.Queue()
-    str_queue_out = queue.Queue()
 
     def __init__(self, my_port, their_port, maxWindowSize, state, otherAddress):
         self.maxWindowSize = maxWindowSize
@@ -55,6 +41,21 @@ class Connection:
         self.my_port = my_port
         self.their_port = their_port
 
+        ##constructor, needs max window size for requirements and state for bidir
+        ##should also initialize buffers etc
+        self.otherAddress = ("not initialized", 0)
+        self.maxWindowSize = 1
+        self.state = STATE.CLOSED
+
+        self.seq = 0
+        self.ack = 0
+
+        ### Threading Queues:
+
+        self.dgram_queue_in = queue.Queue() # contains EVILPacket objs
+        self.dgram_queue_out = queue.Queue() # contains EVILPacket objs
+        self.str_queue_in = queue.Queue()
+        self.str_queue_out = queue.Queue()
 
 
     ##called by the socket on each connection passing in a packet that was
@@ -88,3 +89,11 @@ class Connection:
     ##thread that handles the output buffer, adding its requests to the socket
     ##when the sliding window allows
     def outputManager():
+
+    ### SKELETON:
+    # while True:
+    #     wait_for_queue_item
+    #     if not self.dgram_queue_in.empty():
+    #         
+
+
