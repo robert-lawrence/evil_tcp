@@ -1,11 +1,10 @@
 import random
 import sys
-import sha
-from enum import Enum
+import hashlib
 
-class FLAG(Enum)
-    FIN = 1 << 15,
-    SYN = FIN >> 1,
+class FLAG():
+    FIN = 1 << 15
+    SYN = FIN >> 1
     ACK = SYN >> 1
 
 showDebugInfo = True
@@ -14,8 +13,6 @@ def debugLog(log):
     if showDebugInfo:
         print(log)
 
-
-##we'll fill this out later
 class EVILPacket:
   '''
         0                   1                   2                   3
@@ -128,7 +125,7 @@ class EVILPacket:
               )
 
   def generateCheckSum(self):
-      checksum = sha.new()
+      checksum = hashlib.md5()
       checksum.update(str(self.src_port))
       checksum.update(str(self.dst_port))
       checksum.update(str(self.seq))
@@ -136,10 +133,14 @@ class EVILPacket:
       checksum.update(str(self.flags))
       checksum.update(str(self.window))
       checksum.update(self.data)
-      return checksum.digest() & 0xFFFFFFFF
+      return int(checksum.hexdigest(), 16) & 0xFFFFFFFF
 
   def validateCheckSum(self):
-      return generateCheckSum() == self.checksum
+      currentCheckSum = self.generateCheckSum()
+      return (currentCheckSum == self.checksum)
+
+  def checkFlag(self, flag):
+      return (self.flags & flag)
 
 def getFromBytes(pos, size, string):
     temp = 0
@@ -158,7 +159,8 @@ def setInBytes(pos, size, string, value):
 
 def test():
   pack = EVILPacket()
-  pack.data = "Hello, World"
+  pack.data = "sbutt"
+  random.seed(5)
   pack.flags = int(random.getrandbits(8 * 2))
   pack.src_port = int(random.getrandbits(8 * 2))
   pack.dst_port = int(random.getrandbits(8 * 2))

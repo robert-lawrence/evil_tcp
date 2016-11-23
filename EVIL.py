@@ -7,6 +7,9 @@ import socket
 import threading
 import queue
 
+import connection
+import util
+
 class Evil:
     BUFSIZE = 1000
     DEFAULTMAXWIN = 1
@@ -26,12 +29,15 @@ class Evil:
 
         while True:
             msg, address = sock.recvfrom(Evil.BUFSIZE)
+            packet = EVILPacket()
+            packet = packet.parseFromString(msg)
             if address in connections:
                 connectionsLock.acquire()
-                connections[(address, CONN)].handleIncoming(msg)
+                connections[(address, CONN)].handleIncoming(packet)
                 connectionsLock.release()
             else:
-                unknownPackets.put((msg, address), False)
+                if packet.checkFlag(FLAGS.SYN)
+                unknownPackets.put((packet, address), False)
 
     def bind(self, host, port):
         sock.bind(self.host, self.port)
