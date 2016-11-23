@@ -12,6 +12,7 @@
 import queue
 import threading
 from util import EVILPacket
+from util import debugLog
 
 class STATE():
     CLOSED = 1
@@ -31,7 +32,7 @@ class Connection:
 
     ##member variables are window size, max window size, in/out buffers, and
     ##a state enum
-
+    DEFAULT_TIMEOUT = 1000
 
     def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress, socket):
         self.max_window_size = maxWindowSize
@@ -64,6 +65,7 @@ class Connection:
         self.socket = socket
 
         self.establishedCondition = threading.Condition()
+        self.resendTimer = 0
 
 
     ##called by the socket on each connection passing in a packet that was
@@ -148,16 +150,27 @@ class Connection:
     def establishConnection(self):
 
         while True:
-            stateLock.acquire()
-            currState = state
-            stateLock.release()
+            if (resendTimer % DEFAULT_TIMEOUT == 0):
+                stateLock.acquire()
+                currState = state
+                stateLock.release()
 
-            if currState == STATE.ESTABLISHED
-                return True
+                if currState == STATE.ESTABLISHED
+                    debugLog("Connection established")
+                    return True
+                elif currState == STATE.SYN_RECV
+                    reply = new_dgram()
+                    reply.setFlag(FLAGS.SYN, True)
+                    reply.setFlag(FLAGS.ACK, True)
+                    debugLog("Sent SYN+ACK")
+                    send(reply)
+                elif currState == STATE.SYN_SENT
+                    reply = new_dgram()
+                    reply.setFlag(FLAGS.SYN, True)
+                    debugLog("Sent SYN")
+                    send(reply)
 
-            elif currState == STATE.SYN_RECV
-                send = new_dgram()
-
+            self.resendTimer += 1
 
     ##thread that handles the output buffer, adding its requests to the socket
     ##when the sliding window allows

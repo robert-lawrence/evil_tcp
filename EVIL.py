@@ -9,6 +9,7 @@ import queue
 
 import connection
 import util
+from util import debugLog
 
 class Evil:
     BUFSIZE = 1000
@@ -73,7 +74,8 @@ class Evil:
         self.connections[(address, CONN)] = newConn
         self.connectionsLock.release()
 
-        newConn.handleIncoming(unknownPacket)
+        newConn.establishConnection()
+
         newConn.establishedCondition.acquire()
         newConn.establishedCondition.wait()
         newConn.establishedCondition.release()
@@ -93,7 +95,9 @@ class Evil:
         newConn = connection(Evil.DEFAULTMAXWIN, STATE.SYN_RECV, (host, port))
         connections[(address, CONN)] = newConn
         connectionsLock.release()
+        newConn.establishConnection()
         debugLog("new connection created with: " + host + " on port " + str(port))
+        return newConn
 
     def addToOutput(address, packet):
         outgoingPackets.put((address, packet))
