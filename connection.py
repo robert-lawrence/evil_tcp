@@ -14,6 +14,7 @@ import threading
 from util import EVILPacket
 from util import debugLog
 import util
+import time
 
 class STATE():
     CLOSED = 1
@@ -33,10 +34,11 @@ class Connection:
 
     ##member variables are window size, max window size, in/out buffers, and
     ##a state enum
-    DEFAULT_TIMEOUT = 1000
+    DEFAULT_TIMEOUT = 5
 
     def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress, socket):
         self.max_window_size = maxWindowSize
+        self.max_send_size = 1
         self.state = state
         self.stateCond = threading.Condition()
         self.otherAddress = otherAddress
@@ -46,7 +48,6 @@ class Connection:
         ##constructor, needs max window size for requirements and state for bidir
         ##should also initialize buffers etc
         self.otherAddress = ("not initialized", 0)
-        self.maxWindowSize = 1
         self.currentWindowSize = 1
         self.state = STATE.CLOSED
 
@@ -67,6 +68,13 @@ class Connection:
 
         self.establishedCondition = threading.Condition()
         self.resendTimer = 0
+
+    def setState(self, newState, timerReset=True)
+        self.stateCond.acquire()
+        self.state = newState
+        if timerReset:
+            self.resendTimer = 0
+        self.stateCond.release()
 
 
     ##called by the socket on each connection passing in a packet that was
@@ -101,6 +109,7 @@ class Connection:
 
     ##send a FIN, set state appropriately
     def close():
+        pass
 
 
     def new_dgram(seq=None,ack=None):
@@ -113,6 +122,7 @@ class Connection:
         dgram.dst_port = self.dst_port
         dgram.seq = seq
         dgram.ack = ack
+        dgram.window = self.max_window_size
 
         return dgram
 
@@ -126,36 +136,56 @@ class Connection:
 
         self.seq += len(data) #TODO  may change
 
-        self.dgram_unconf.append(dgram)
-
-        socket.addToOutput(dgram)
+        if len(self.dgram_unconf) >= self.max_send_size:
+            self.dgram_unsent.append(dgram)
+        else:
+            self.dgram_unconf.append(dgram)
+            socket.addToOutput(self.otherAddress,dgram)
 
     def process_dgram(self,dgram):
         self.stateCond.acquire()
-        state = self.state
+        oldState = self.state
+        self.max_send_size = dgram.window
         new_dgram = self.new_dgram()
-        if state != STATE.ESTABLISHED:
-            if state == STATE.CLOSED:
+        if oldState != STATE.ESTABLISHED:
+            if oldState == STATE.CLOSED:
                 pass
-            if state == STATE.LISTEN:
+            if oldState == STATE.LISTEN:
                 if dgram.checkFlag(util.FLAG.SYN):
                     new_dgram.setFlag(util.FLAG.SYN,True)
                     new_dgram.setFlag(util.FLAG.ACK,True)
-                    self.STATE = STATE.SYN_RECV
-                    self.resendTimer = 0
-            if state == STATE.SYN_RECV:
+                    setState(STATE.SYN_RECV)
+                    self.stateCond.notifyAll()
+                    socket.addToOutput(self.otherAddress,new_dgram)
+                    debugLog("Sent SYN+ACK")
+            if oldState == STATE.SYN_RECV:
                 if dgram.checkFlag(util.FLAG.ACK):
-                    self.STATE = STATE.ESTABLISHED
-                    self.resendTimer = 0
-            if state == STATE.FIN_WAIT_1:
-            if state == STATE.FIN_WAIT_2:
-            if state == STATE.FIN_CLOSING:
-            if state == STATE.TIME_WAIT:
-            if state == STATE.CLOSE_WAIT:
-            if state == STATE.LAST_ACK:
+                    setState(STATE.ESTABLISHED)
+                    self.stateCond.notifyAll()
+                    debugLog("Connection Established")
+            if oldState == STATE.FIN_WAIT_1:
+                pass
+            if oldState == STATE.FIN_WAIT_2:
+                pass
+            if oldState == STATE.FIN_CLOSING:
+                pass
+            if oldState == STATE.TIME_WAIT:
+                pass
+            if oldState == STATE.CLOSE_WAIT:
+                pass
+            if oldState == STATE.LAST_ACK:
+                pass
             #TODO !!!
             pass
         else:
+            dataLen = len(dgram.data)
+            if self.ack + dataLen != dgram.seq:
+                #Out of order packet. Will be dropped.
+                # Re-acknowledge last received in-order packet
+                socket.addToOutput(self.otherAddress,new_dgram)
+                debugLog("Received packet out-of-order. Re-ACKing last received packet")
+                return
+
             self.ack += len(dgram.data) #TODO: need to change to fit data type
             rcvd_ack = dgram.ack
             j = len(self.dgram_unconf)
@@ -168,36 +198,42 @@ class Connection:
                 i += 1
             if len(dgram.data) != 0:
                 self.str_queue_in.put(dgram.data)
+            new_dgram = self.new_dgram() #get new ack number
+            debugLog("ACKing received packet")
+            socket.addToOutput(self.otherAddress,new_dgram)
         self.stateCond.release()
 
-    def establishConnection(self):
+    def checkTimeout(self):
+        if time.clock() - self.resendTimer < DEFAULT_TIMEOUT:
+            return
+        new_dgram = self.new_dgram()
+        self.stateCond.acquire()
+        oldState = self.state
 
-        while True:
-            if (resendTimer % DEFAULT_TIMEOUT == 0):
-                stateCond.acquire()
-                currState = state
-                stateCond.release()
+        if oldState == STATE.SYN_RECV:
+            new_dgram.setFlag(util.FLAG.SYN,True)
+            new_dgram.setFlag(util.FLAG.ACK,True)
+            socket.addToOutput(self.otherAddress,new_dgram)
+            debugLog("sent SYN+ACK")
+        elif oldState == STATE.SYN_SENT:
+            newdgram.setFlag(util.FLAG.SYN,True)
+            sent(new_dgram)
+            debugLog("sent SYN")
+        elif currState == STATE.ESTABLISHED:
+            #Need to resend any unACK-ed data
+            for dgram in self.dgram_unconf:
+                debugLog("Resending data")
+                socket.addToOutput(self.otherAddress,dgram)
 
-                if currState == STATE.ESTABLISHED
-                    debugLog("Connection established")
-                    return True
-                elif currState == STATE.SYN_RECV
-                    reply = new_dgram()
-                    reply.setFlag(FLAGS.SYN, True)
-                    reply.setFlag(FLAGS.ACK, True)
-                    debugLog("Sent SYN+ACK")
-                    send(reply)
-                elif currState == STATE.SYN_SENT
-                    reply = new_dgram()
-                    reply.setFlag(FLAGS.SYN, True)
-                    debugLog("Sent SYN")
-                    send(reply)
+        self.resendTimer = 0
+        self.sateCond.release()
 
-            self.resendTimer += 1
+
 
     # Waits for input, calls appropriate fn
     def c_thread():
 
+        self.resendTimer = time.clock()
         while True:
             cond = self.queue_cond
             cond.acquire()
@@ -207,12 +243,15 @@ class Connection:
             while not self.dgram_queue_in.empty():
                 dgram = self.dgram_queue_in.get()
                 process_dgram(dgram)
+            while len(self.dgram_unconf) < self.max_send_size and len(self.dgram_unsent) > 0:
+                dgram = self.dgram_unsent.pop(0)
+                dgram.ack = self.ack
+                debugLog("Sending delayed data")
+                sent(dgram)
+                self.dgram_unconf.append(dgram)
             while not self.str_queue_out.empty():
                 held = len(self.dgram_unconf)
                 data = self.str_queue_out.get()
-                if held >= self.max_window_size:
-                    self.dgram_unsent.append(data)
-                else:
-                    process_data_str(data)
+                process_data_str(data)
             if not check_connection():
                 break
