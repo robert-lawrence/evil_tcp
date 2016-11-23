@@ -118,7 +118,11 @@ class Connection:
         dgram.seq = self.seq + len(data)
         dgram.window = self.currentWindowSize
         dgram.checksum = drgram.generateCheckSum()
+<<<<<<< HEAD
 
+=======
+        self.seq += len(data) #TODO  may change
+>>>>>>> origin/master
         self.dgram_unconf.append(dgram)
 
         socket.addToOutput(dgram)
@@ -128,6 +132,7 @@ class Connection:
             #TODO !!!
             pass
         else:
+            self.ack += len(dgram.data) #TODO: need to change to fit data type
             rcvd_ack = dgram.ack
             j = len(self.dgram_unconf)
             i = 0
