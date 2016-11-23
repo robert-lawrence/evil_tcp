@@ -68,6 +68,9 @@ class Connection:
     def handleIncoming(packet):
         try:
             self.dgram_queue_in.put(packet,timeout=0.5)
+            self.queue_cond.acquire()
+            self.queue_cond.notify()
+            self.queue_cond.release()
         except Exception as e:
             pass
 
@@ -86,6 +89,9 @@ class Connection:
         if self.state != STATE.ESTABLISHED:
             throw Exception("Cannot write to non-established connection")
         self.str_queue_in.put(data,block,timeout)
+        self.queue_cond.acquire()
+        self.queue_cond.notify()
+        self.queue_cond.release()
 
     ##send a FIN, set state appropriately
     def close():
