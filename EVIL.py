@@ -20,12 +20,14 @@ class Evil:
         self.connectionsLock = threading.Lock()
         self.unknownPackets = queue.Queue()
 
+        self.outgoingPackets = queue.Queue()
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.port = 0
         self.host = 0
 
-    def main(self):
-        debugLog("mainThread started on port " + PORT)
+    def listener(self):
+        debugLog("listenerThread started on port " + PORT)
 
         while True:
             msg, address = sock.recvfrom(Evil.BUFSIZE)
@@ -39,10 +41,19 @@ class Evil:
                 if packet.checkFlag(FLAGS.SYN)
                 unknownPackets.put((packet, address), False)
 
+    def speaker(self):
+        debugLog("speakerThread started on port " + PORT)
+
+        while True:
+            recipient, packet = outgoingPackets.get()
+            sock.sendto(packet.toString(), recipient)
+
+
+
     def bind(self, host, port):
         sock.bind(self.host, self.port)
-        mainThread = threading.Thread(None, main, mainThread)
-        mainThread.start()
+        listenerThread = threading.Thread(None, listener, mainThread)
+        listenerThread.start()
 
     def accept(self):
         """
@@ -77,3 +88,6 @@ class Evil:
         connections[(address, CONN)] = newConn
         connectionsLock.release()
         debugLog("new connection created with: " + host + " on port " + str(port))
+
+    def addToOutput(address, packet):
+        outgoingPackets.put((address, packet))
