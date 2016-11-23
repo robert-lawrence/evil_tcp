@@ -13,9 +13,10 @@ import queue
 import threading
 from util import EVILPacket
 from util import debugLog
+import util
 
 class STATE():
-    CLOSED = 1
+    CLOSED = 2
     LISTEN = CLOSED << 1
     SYN_RECV = LISTEN << 1
     SYN_SENT = SYN_RECV << 1
@@ -37,7 +38,7 @@ class Connection:
     def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress, socket):
         self.max_window_size = maxWindowSize
         self.state = state
-        self.stateLock = threading.Lock()
+        self.stateCond = threading.Condition()
         self.otherAddress = otherAddress
         self.src_port = src_port
         self.dst_port = dst_port
@@ -107,7 +108,7 @@ class Connection:
             seq = self.seq
         if ack == None:
             ack = self.ack
-        dgram = EVILPacket()
+        dgram = util.EVILPacket()
         dgram.src_port = self.my_port
         dgram.dst_port = self.dst_port
         dgram.seq = seq
@@ -130,7 +131,28 @@ class Connection:
         socket.addToOutput(dgram)
 
     def process_dgram(self,dgram):
-        if self.state != STATE.ESTABLISHED:
+        self.sateCond.acquire()
+        state = self.STATE
+        new_dgram = self.new_dgram()
+        if state != STATE.ESTABLISHED:
+            if state == STATE.CLOSED:
+                pass
+            if state == STATE.LISTEN:
+                if dgram.checkFlag(util.FLAG.SYN):
+                    new_dgram.setFlag(util.FLAG.SYN,True)
+                    new_dgram.setFlag(util.FLAG.ACK,True)
+                    self.STATE = STATE.SYN_RECV
+                    self.resendTimer = 0
+            if state == STATE.SYN_RECV:
+                if dgram.checkFlag(util.FLAG.ACK):
+                    self.STATE = STATE.ESTABLISHED
+                    self.resendTimer = 0
+            if state == STATE.FIN_WAIT_1:
+            if state == STATE.FIN_WAIT_2:
+            if state == STATE.FIN_CLOSING:
+            if state == STATE.TIME_WAIT:
+            if state == STATE.CLOSE_WAIT:
+            if state == STATE.LAST_ACK:
             #TODO !!!
             pass
         else:
@@ -146,14 +168,15 @@ class Connection:
                 i += 1
             if len(dgram.data) != 0:
                 self.str_queue_in.put(dgram.data)
+        self.stateCond.release()
 
     def establishConnection(self):
 
         while True:
             if (resendTimer % DEFAULT_TIMEOUT == 0):
-                stateLock.acquire()
+                stateCond.acquire()
                 currState = state
-                stateLock.release()
+                stateCond.release()
 
                 if currState == STATE.ESTABLISHED
                     debugLog("Connection established")
@@ -172,9 +195,8 @@ class Connection:
 
             self.resendTimer += 1
 
-    ##thread that handles the output buffer, adding its requests to the socket
-    ##when the sliding window allows
-    def outputManager():
+    # Waits for input, calls appropriate fn
+    def c_thread():
 
         while True:
             cond = self.queue_cond
