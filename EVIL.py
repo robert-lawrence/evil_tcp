@@ -70,8 +70,8 @@ class Evil:
         unknownPacket = unknownPackets.get()
 
         connectionsLock.acquire()
-        newConn = Connection(Evil.DEFAULTMAXWIN, STATE.LISTEN, unknownPacket[1])
-        self.connections[(address, CONN)] = newConn
+        newConn = Connection(self.port, unknownPacket[0], Evil.DEFAULTMAXWIN, STATE.SYN_RECV, unknownPacket[1], self)
+        self.connections[((unknownPacket[0], unknownPacket[1]), CONN)] = newConn
         self.connectionsLock.release()
 
         newConn.establishConnection()
@@ -92,8 +92,8 @@ class Evil:
         Errors: if socket closed, throw exception
         """
         connectionsLock.acquire()
-        newConn = connection(Evil.DEFAULTMAXWIN, STATE.SYN_RECV, (host, port))
-        connections[(address, CONN)] = newConn
+        newConn = Connection(self.port, port, Evil.DEFAULTMAXWIN, STATE.SYN_SENT, host, self)
+        connections[((host, port), CONN)] = newConn
         connectionsLock.release()
         newConn.establishConnection()
         debugLog("new connection created with: " + host + " on port " + str(port))
