@@ -1,4 +1,7 @@
 import random
+import sys
+import sha
+
 
 showDebugInfo = True
 
@@ -49,10 +52,11 @@ class EVILPacket:
       self.dst_port = getFromBytes(current, size, string)
       current += size
 
+      size = 4
       self.seq = getFromBytes(current, size, string)
       current += size
 
-      size = 4
+
       self.ack = getFromBytes(current, size, string)
       current += size
 
@@ -67,14 +71,16 @@ class EVILPacket:
       self.checksum = getFromBytes(current, size, string)
       current += size
 
-      self.data = string[current:]
+      self.data = ""
+      for i in range(current, len(string) + 32 - 69):
+        self.data += chr(getFromBytes(i, 1, string))
 
       return self
 
   def toString(self):
       current = 0;
       size = 0;
-      temp = bytearray(20 + 10)
+      temp = bytearray(20 + sys.getsizeof(self.data))
       size = 2
       temp = setInBytes(current, size, temp, self.src_port)
       current += size
@@ -100,8 +106,8 @@ class EVILPacket:
       temp = setInBytes(current, size, temp, self.checksum)
       current += size
 
-
-      return temp + self.data
+      temp = setInBytes(current, len(self.data), temp, self.data)
+      return temp
 
   def printSelf(self):
       debugLog( "Package reads: " +
@@ -115,6 +121,17 @@ class EVILPacket:
               "\n Data: " +         str(self.data)
               )
 
+  def generateCheckSum(self):
+      checksum = sha.new()
+      checksum.update(str(self.src_port))
+      checksum.update(str(self.dst_port))
+      checksum.update(str(self.seq))
+      checksum.update(str(self.ack))
+      checksum.update(str(self.flags))
+      checksum.update(str(self.window))
+      checksum.update(self.data)
+      return checksum.hexdigest()
+
 
 def getFromBytes(pos, size, string):
     temp = 0
@@ -125,7 +142,10 @@ def getFromBytes(pos, size, string):
 
 def setInBytes(pos, size, string, value):
     for offset in range(0, size):
-        string[pos + offset] = (value >> (offset * 8)) & 0xFF
+      if type(value) is str:
+        string[pos + offset] = ord(value[offset])
+      else:
+        string[pos + size - offset - 1] = (value >> (offset * 8)) & 0xFF
     return string
 
 def test():
@@ -140,9 +160,17 @@ def test():
   pack.checksum = int(random.getrandbits(8 * 4))
   pack.printSelf()
   packString = pack.toString()
-  debugLog(packString)
+  ##debugLog(packString.decode(encoding='windows-1252'))
+  debugLog(pack.generateCheckSum())
   newPack = EVILPacket()
   newPack = newPack.parseFromString(packString)
   newPack.printSelf()
+  debugLog(newPack.generateCheckSum())
+
+  newPackString = newPack.toString()
+  newNewPack = EVILPacket()
+  newNewPack = newNewPack.parseFromString(newPackString)
+  newNewPack.printSelf()
+  debugLog(newNewPack.generateCheckSum())
 
 test()
