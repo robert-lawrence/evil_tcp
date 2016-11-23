@@ -25,7 +25,6 @@ class STATE():
     TIME_WAIT = FIN_CLOSING << 1
     CLOSE_WAIT = TIME_WAIT << 1
     LAST_ACK = CLOSE_WAIT << 1
-    CLOSED = LAST_ACK << 1
 
 
 class Connection:
@@ -37,6 +36,7 @@ class Connection:
     def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress, socket):
         self.max_window_size = maxWindowSize
         self.state = state
+        self.stateLock = threading.Lock()
         self.otherAddress = otherAddress
         self.src_port = src_port
         self.dst_port = dst_port
@@ -62,6 +62,8 @@ class Connection:
 
         self.queue_cond = threading.Condition()
         self.socket = socket
+
+        self.establishedCondition = threading.Condition()
 
 
     ##called by the socket on each connection passing in a packet that was
@@ -142,6 +144,19 @@ class Connection:
                 i += 1
             if len(dgram.data) != 0:
                 self.str_queue_in.put(dgram.data)
+
+    def establishConnection(self):
+
+        while True:
+            stateLock.acquire()
+            currState = state
+            stateLock.release()
+
+            if currState == STATE.ESTABLISHED
+                return True
+
+            elif currState == STATE.SYN_RECV
+                send = new_dgram()
 
 
     ##thread that handles the output buffer, adding its requests to the socket

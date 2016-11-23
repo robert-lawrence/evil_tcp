@@ -69,10 +69,14 @@ class Evil:
         unknownPacket = unknownPackets.get()
 
         connectionsLock.acquire()
-        newConn = Connection(Evil.DEFAULTMAXWIN, STATE.SYN_RECV, unknownPacket[1])
+        newConn = Connection(Evil.DEFAULTMAXWIN, STATE.LISTEN, unknownPacket[1])
         self.connections[(address, CONN)] = newConn
         self.connectionsLock.release()
 
+        newConn.handleIncoming(unknownPacket)
+        newConn.establishedCondition.acquire()
+        newConn.establishedCondition.wait()
+        newConn.establishedCondition.release()
         return newConn
 
 
