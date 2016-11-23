@@ -11,15 +11,29 @@ class Evil:
     BUFSIZE = 1000
     DEFAULTMAXWIN = 1
 
-    def __init__(self, host, port):
+    def __init__(self):
 
         self.connections = []
         self.connectionsLock = threading.Lock()
         self.unknownPackets = queue.Queue()
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.port = port
-        self.host = host
+        self.port = 0
+        self.host = 0
+
+    def main(self):
+        debugLog("mainThread started on port " + PORT)
+
+        while True:
+            msg, address = sock.recvfrom(Evil.BUFSIZE)
+            if address in connections:
+                connectionsLock.acquire()
+                connections[(address, CONN)].handleIncoming(msg)
+                connectionsLock.release()
+            else:
+                unknownPackets.put((msg, address), False)
+
+    def bind(self, host, port):
         sock.bind(self.host, self.port)
         mainThread = threading.Thread(None, main, mainThread)
         mainThread.start()
@@ -56,18 +70,4 @@ class Evil:
         newConn = connection(Evil.DEFAULTMAXWIN, STATE.SYN_RECV, (host, port))
         connections[(address, CONN)] = newConn
         connectionsLock.release()
-        pass
-
-
-    def main(self):
-        debugLog("mainThread started on port " + PORT)
-
-        while True:
-            msg, address = sock.recvfrom(Evil.BUFSIZE)
-            if address in connections:
-                connectionsLock.acquire()
-                connections[(address, CONN)].handleIncoming(msg)
-                connectionsLock.release()
-            else:
-                unknownPackets.put((msg, address), False)
-        pass
+        debugLog("new connection created with: " + host + " on port " + str(port))
