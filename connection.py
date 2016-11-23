@@ -118,11 +118,9 @@ class Connection:
         dgram.seq = self.seq + len(data)
         dgram.window = self.currentWindowSize
         dgram.checksum = drgram.generateCheckSum()
-<<<<<<< HEAD
 
-=======
         self.seq += len(data) #TODO  may change
->>>>>>> origin/master
+
         self.dgram_unconf.append(dgram)
 
         socket.addToOutput(dgram)
