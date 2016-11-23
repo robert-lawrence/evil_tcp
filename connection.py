@@ -26,7 +26,7 @@ class Connection:
 
     ##constructor, needs max window size for requirements and state for bidir
     ##should also initialize buffers etc
-    def __init__(self, maxWindowSize, state):
+    def __init__(self, maxWindowSize, state, address):
 
     ##called by the socket on each connection passing in a packet that was
     ##sent to the connection, could be an ack or data, checksum has been done
