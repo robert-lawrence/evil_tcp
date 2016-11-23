@@ -45,6 +45,7 @@ class Connection:
         ##should also initialize buffers etc
         self.otherAddress = ("not initialized", 0)
         self.maxWindowSize = 1
+        self.currentWindowSize = 1
         self.state = STATE.CLOSED
 
         self.seq = 0
@@ -115,8 +116,9 @@ class Connection:
         dgram = self.new_dgram()
         dgram.data = data
         dgram.seq = self.seq + len(data)
+        dgram.window = self.currentWindowSize
         dgram.checksum = drgram.generateCheckSum()
-        
+
         self.dgram_unconf.append(dgram)
 
         socket.addToOutput(dgram)
