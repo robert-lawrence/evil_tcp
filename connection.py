@@ -16,7 +16,7 @@ from util import debugLog
 import util
 
 class STATE():
-    CLOSED = 2
+    CLOSED = 1
     LISTEN = CLOSED << 1
     SYN_RECV = LISTEN << 1
     SYN_SENT = SYN_RECV << 1
@@ -131,8 +131,8 @@ class Connection:
         socket.addToOutput(dgram)
 
     def process_dgram(self,dgram):
-        self.sateCond.acquire()
-        state = self.STATE
+        self.stateCond.acquire()
+        state = self.state
         new_dgram = self.new_dgram()
         if state != STATE.ESTABLISHED:
             if state == STATE.CLOSED:

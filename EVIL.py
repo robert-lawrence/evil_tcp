@@ -24,35 +24,33 @@ class Evil:
         self.outgoingPackets = queue.Queue()
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.port = 0
-        self.host = 0
 
     def listener(self):
         debugLog("listenerThread started on port " + PORT)
 
         while True:
-            msg, address = sock.recvfrom(Evil.BUFSIZE)
+            msg, address = self.sock.recvfrom(Evil.BUFSIZE)
             packet = EVILPacket()
             packet = packet.parseFromString(msg)
             if address in connections:
-                connectionsLock.acquire()
-                connections[(address, CONN)].handleIncoming(packet)
-                connectionsLock.release()
+                self.connectionsLock.acquire()
+                self.connections[(address, CONN)].handleIncoming(packet)
+                self.connectionsLock.release()
             else:
                 if packet.checkFlag(FLAGS.SYN):
-                    unknownPackets.put((packet, address), False)
+                    self.unknownPackets.put((packet, address), False)
 
     def speaker(self):
         debugLog("speakerThread started on port " + PORT)
 
         while True:
-            recipient, packet = outgoingPackets.get()
-            sock.sendto(packet.toString(), recipient)
+            recipient, packet = self.outgoingPackets.get()
+            self.sock.sendto(packet.toString(), recipient)
 
 
 
     def bind(self, host, port):
-        sock.bind(self.host, self.port)
+        self.sock.bind(host, port)
         listenerThread = threading.Thread(None, listener, listenerThread)
         listenerThread.start()
         speakerThread = threading.Thread(None, speaker, speakerThread)
@@ -69,7 +67,7 @@ class Evil:
         """
         unknownPacket = unknownPackets.get()
 
-        connectionsLock.acquire()
+        self.connectionsLock.acquire()
         newConn = Connection(self.port, unknownPacket[0], Evil.DEFAULTMAXWIN, STATE.SYN_RECV, unknownPacket[1], self)
         self.connections[((unknownPacket[0], unknownPacket[1]), CONN)] = newConn
         self.connectionsLock.release()
@@ -91,13 +89,17 @@ class Evil:
         Return: a Connection instance (if successful) or an error
         Errors: if socket closed, throw exception
         """
-        connectionsLock.acquire()
+        self.connectionsLock.acquire()
         newConn = Connection(self.port, port, Evil.DEFAULTMAXWIN, STATE.SYN_SENT, host, self)
-        connections[((host, port), CONN)] = newConn
-        connectionsLock.release()
+        self.connections[((host, port), CONN)] = newConn
+        self.connectionsLock.release()
         newConn.establishConnection()
         debugLog("new connection created with: " + host + " on port " + str(port))
         return newConn
 
-    def addToOutput(address, packet):
-        outgoingPackets.put((address, packet))
+    def addToOutput(self, address, packet):
+        self.outgoingPackets.put((address, packet))
+
+    def close(self):
+        for connection in self.connections:
+            connection.close()
