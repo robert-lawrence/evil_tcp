@@ -11,6 +11,7 @@
 
 from enum import Enum
 import queue
+import threading
 from util import EVILPacket
 
 class STATE(Enum):
@@ -35,7 +36,7 @@ class Connection:
 
 
     def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress):
-        self.maxWindowSize = maxWindowSize
+        self.max_window_size = maxWindowSize
         self.state = state
         self.otherAddress = otherAddress
         self.src_port = src_port
@@ -54,9 +55,12 @@ class Connection:
 
         self.dgram_queue_in = queue.Queue() # contains EVILPacket objs
         # self.dgram_queue_out = queue.Queue() # contains EVILPacket objs
-        self.dgram_queue_out = []
+        self.dgram_unconf = []
+        self.dgram_unsent = []
         self.str_queue_in = queue.Queue()
         self.str_queue_out = queue.Queue()
+
+        self.queue_cond = threading.Condition()
 
 
     ##called by the socket on each connection passing in a packet that was
@@ -101,23 +105,50 @@ class Connection:
     def process_data_str(self,data):
         # seq will be added in EVIL.py
         dgram = self.new_dgram()
-        dgram.msg = data
+        dgram.data = data
+        #TODO: do we need to set FLAGS?
+        self.dgram_unconf.append(dgram)
+        #TODO: call method in EVIL to send dgram
+
+    def process_dgram(self,dgram):
+        if self.state != STATE.ESTABLISHED:
+            #TODO !!!
+            pass
+        else:
+            rcvd_ack = dgram.ack
+            j = len(self.dgram_unconf)
+            i = 0
+            while i < j:
+                if self.dgram_unconf[i].ack < rcvd_ack:
+                    self.dgram_unconf.pop(i)
+                    i -= 1
+                    j -= 1
+                i += 1
+            if len(dgram.data) != 0:
+                self.str_queue_in.put(dgram.data)
 
 
     ##thread that handles the output buffer, adding its requests to the socket
     ##when the sliding window allows
     def outputManager():
 
-    ### SKELETON:
-    # while True:
-    #     wait_for_queue_item()
-    #     while not self.dgram_queue_in.empty():
-    #         self.dgram_queue_in.get()
-    #         process_packet()
-    #     while not self.str_queue_out.empty():
-    #         self.str_queue_out.get()
-    #         process_data()
-    #     if not check_connection():
-    #         break
+        while True:
+            cond = self.queue_cond
+            cond.acquire()
+            if self.dgram_queue_in.empty() and self.str_queue_out.empty():
+                cond.wait()
+            cond.release()
+            while not self.dgram_queue_in.empty():
+                dgram = self.dgram_queue_in.get()
+                process_dgram(dgram)
+            while not self.str_queue_out.empty():
+                held = len(self.dgram_unconf)
+                data = self.str_queue_out.get()
+                if held >= self.max_window_size:
+                    self.dgram_unsent.append(data)
+                else:
+                    process_data_str(data)
+            if not check_connection():
+                break
 
 
