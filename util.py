@@ -8,6 +8,11 @@ def debugLog(log):
 class EVILPacket:
     msg = ""
     flags = 0
+    seq = 0
+    ack = 0
+    src_port = 0
+    dst_port = 0
+
     def __init__(self):
       pass
 

@@ -10,6 +10,7 @@
 ##              syn_sent (if it was created with socket.connect)
 
 from enum import Enum
+import queue
 
 class STATE(Enum):
     CLOSED = 1,
@@ -37,28 +38,48 @@ class Connection:
     maxWindowSize = 1
     state = STATE.CLOSED
 
-    outBuffer = []
-    inBuffer = []
+    seq = 0
+    ack = 0
 
-    def __init__(self, maxWindowSize, state, otherAddress):
+    ### Threading Queues:
+
+    dgram_queue_in = queue.Queue()
+    dgram_queue_out = queue.Queue()
+    str_queue_in = queue.Queue()
+    str_queue_out = queue.Queue()
+
+    def __init__(self, my_port, their_port, maxWindowSize, state, otherAddress):
         self.maxWindowSize = maxWindowSize
         self.state = state
         self.otherAddress = otherAddress
+        self.my_port = my_port
+        self.their_port = their_port
 
 
 
     ##called by the socket on each connection passing in a packet that was
     ##sent to the connection, could be an ack or data, checksum has been done
     def handleIncoming(packet):
+        try:
+            self.dgram_queue_in.put(packet,timeout=0.5)
+        except Exception as e:
+            pass
 
 
     ##called by the application when it wants to read the data from the stream
     ##pauses until data is available, deletes data from the buffer once gotten
-    def get(maxSize):
+    def get(maxSize,block=True,timeout=None):
+        if self.state != STATE.ESTABLISHED and self.str_queue_out.empty():
+            throw Exception("Cannot read from non-established connection")
+        return self.str_queue_out.get(block,timeout)
+
 
     ##called by the application when it wants to send data to the connection
     ##should add the data to the output buffer, then handle it when appropriate
-    def send(data):
+    def send(data,block=True,timeout=None):
+        if self.state != STATE.ESTABLISHED:
+            throw Exception("Cannot write to non-established connection")
+        self.str_queue_in.put(data,block,timeout)
 
     ##send a FIN, set state appropriately
     def close():
