@@ -1,13 +1,19 @@
 import random
 import sys
 import sha
+from enum import Enum
 
+class FLAG(Enum)
+    FIN = 1 << 15,
+    SYN = FIN >> 1,
+    ACK = SYN >> 1
 
 showDebugInfo = True
 
 def debugLog(log):
     if showDebugInfo:
         print(log)
+
 
 ##we'll fill this out later
 class EVILPacket:
@@ -130,8 +136,10 @@ class EVILPacket:
       checksum.update(str(self.flags))
       checksum.update(str(self.window))
       checksum.update(self.data)
-      return checksum.hexdigest()
+      return checksum.digest() & 0xFFFFFFFF
 
+  def validateCheckSum(self):
+      return generateCheckSum() == self.checksum
 
 def getFromBytes(pos, size, string):
     temp = 0
