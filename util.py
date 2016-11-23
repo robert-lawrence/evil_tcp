@@ -2,15 +2,16 @@ import random
 import sys
 import hashlib
 
+_debug = True
+
 class FLAG():
     FIN = 1 << 15
     SYN = FIN >> 1
     ACK = SYN >> 1
 
-showDebugInfo = True
-
 def debugLog(log):
-    if showDebugInfo:
+
+    if _debug:
         print(log)
 
 class EVILPacket:
@@ -182,5 +183,3 @@ def test():
   newNewPack = newNewPack.parseFromString(newPackString)
   newNewPack.printSelf()
   debugLog(newNewPack.generateCheckSum())
-
-test()
