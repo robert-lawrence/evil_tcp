@@ -34,12 +34,12 @@ class Connection:
     ##a state enum
 
 
-    def __init__(self, my_port, their_port, maxWindowSize, state, otherAddress):
+    def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress):
         self.maxWindowSize = maxWindowSize
         self.state = state
         self.otherAddress = otherAddress
-        self.my_port = my_port
-        self.their_port = their_port
+        self.src_port = src_port
+        self.dst_port = dst_port
 
         ##constructor, needs max window size for requirements and state for bidir
         ##should also initialize buffers etc
@@ -53,7 +53,8 @@ class Connection:
         ### Threading Queues:
 
         self.dgram_queue_in = queue.Queue() # contains EVILPacket objs
-        self.dgram_queue_out = queue.Queue() # contains EVILPacket objs
+        # self.dgram_queue_out = queue.Queue() # contains EVILPacket objs
+        self.dgram_queue_out = []
         self.str_queue_in = queue.Queue()
         self.str_queue_out = queue.Queue()
 
@@ -86,14 +87,37 @@ class Connection:
     def close():
 
 
+    def new_dgram(seq=None,ack=None):
+        if seq == None:
+            seq = self.seq
+        if ack == None:
+            ack = self.ack
+        dgram = EVILPacket()
+        dgram.src_port = self.my_port
+        dgram.dst_port = self.dst_port
+        dgram.seq = seq
+        dgram.ack = ack
+
+    def process_data_str(self,data):
+        # seq will be added in EVIL.py
+        dgram = self.new_dgram()
+        dgram.msg = data
+
+
     ##thread that handles the output buffer, adding its requests to the socket
     ##when the sliding window allows
     def outputManager():
 
     ### SKELETON:
     # while True:
-    #     wait_for_queue_item
-    #     if not self.dgram_queue_in.empty():
-    #         
+    #     wait_for_queue_item()
+    #     while not self.dgram_queue_in.empty():
+    #         self.dgram_queue_in.get()
+    #         process_packet()
+    #     while not self.str_queue_out.empty():
+    #         self.str_queue_out.get()
+    #         process_data()
+    #     if not check_connection():
+    #         break
 
 
