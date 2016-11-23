@@ -38,8 +38,8 @@ class Evil:
                 connections[(address, CONN)].handleIncoming(packet)
                 connectionsLock.release()
             else:
-                if packet.checkFlag(FLAGS.SYN)
-                unknownPackets.put((packet, address), False)
+                if packet.checkFlag(FLAGS.SYN):
+                    unknownPackets.put((packet, address), False)
 
     def speaker(self):
         debugLog("speakerThread started on port " + PORT)
@@ -52,8 +52,10 @@ class Evil:
 
     def bind(self, host, port):
         sock.bind(self.host, self.port)
-        listenerThread = threading.Thread(None, listener, mainThread)
+        listenerThread = threading.Thread(None, listener, listenerThread)
         listenerThread.start()
+        speakerThread = threading.Thread(None, speaker, speakerThread)
+        speakerThread.start()
 
     def accept(self):
         """

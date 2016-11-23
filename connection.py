@@ -34,7 +34,7 @@ class Connection:
     ##a state enum
 
 
-    def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress):
+    def __init__(self, src_port, dst_port, maxWindowSize, state, otherAddress, socket):
         self.max_window_size = maxWindowSize
         self.state = state
         self.otherAddress = otherAddress
@@ -60,6 +60,7 @@ class Connection:
         self.str_queue_out = queue.Queue()
 
         self.queue_cond = threading.Condition()
+        self.socket = socket
 
 
     ##called by the socket on each connection passing in a packet that was
@@ -107,13 +108,18 @@ class Connection:
         dgram.seq = seq
         dgram.ack = ack
 
+        return dgram
+
     def process_data_str(self,data):
         # seq will be added in EVIL.py
         dgram = self.new_dgram()
         dgram.data = data
-        #TODO: do we need to set FLAGS?
+        dgram.seq = self.seq + len(data)
+        dgram.checksum = drgram.generateCheckSum()
+        
         self.dgram_unconf.append(dgram)
-        #TODO: call method in EVIL to send dgram
+
+        socket.addToOutput(dgram)
 
     def process_dgram(self,dgram):
         if self.state != STATE.ESTABLISHED:
