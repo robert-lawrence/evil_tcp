@@ -130,7 +130,7 @@ def test(argv):
     '''
     app.post("file.txt")
     ##os.rename("file.txt", "file2.txt")
-    app.get("file.txt")
+    app.get("file1.txt")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
     app.connection.close()
