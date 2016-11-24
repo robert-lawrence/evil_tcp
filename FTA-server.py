@@ -29,6 +29,7 @@ class FTAserver():
         debugLog("new session started with " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
         self.sessionState = SESSIONSTATE.IDLE
         self.filename = ""
+        self.fileSize = 0
         while True:
             string = conn.get(1024)
             debugLog("received " + string + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
@@ -38,7 +39,8 @@ class FTAserver():
                     self.sessionState = SESSIONSTATE.GET_1
                     debugLog("Session now get 1")
                     conn.send("get")
-                elif string == "post":
+                elif string[0:6] == "post: ":
+                    self.fileSize = int(string[6:])
                     self.sessionState = SESSIONSTATE.POST_1
                     debugLog("Session now post 1")
                     conn.send("post")
@@ -71,6 +73,8 @@ class FTAserver():
                 debugLog("Session now post 2")
                 conn.send("send file")
             elif self.sessionState == SESSIONSTATE.POST_2:
+                    while len(string) < self.fileSize:
+                        string += conn.get(1024)
                     f = open(self.filename, 'w')
                     f.write(string)
                     f.close()

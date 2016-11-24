@@ -52,7 +52,7 @@ class FTAclient():
                 self.connection.send(F)
                 debugLog("sent file request to server")
                 if ans[0:8] == "got it: ":
-                    fileSize = ans[8:]
+                    fileSize = int(ans[8:])
                     self.connection.send("send file")
                     f = open(F, 'w')
                     fileData = ""
@@ -79,7 +79,10 @@ class FTAclient():
             return False
 
         if self.connected:
-            self.connection.send("post")
+            f = open(F,'r')
+            fileSize = len(f.read())
+            f.close()
+            self.connection.send("post: "+str(fileSize))
             ans = self.connection.get(1024)
             if ans == "post":
                 self.connection.send(F)
