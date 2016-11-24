@@ -26,7 +26,7 @@ class Evil:
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.maxWindowSize = 1
+        self.maxWindowSize = 3
 
     def listener(self):
         debugLog("listenerThread started on port " + str(self.sock.getsockname()[1]))
@@ -118,11 +118,11 @@ class Evil:
 
     def addToOutput(self, address, packet):
         packet.checksum = packet.generateCheckSum()
-        #if random.random() < 0.4:
-            #debugLog("INTRODUCING ERROR INTO PACKET!!!")
+        if random.random() < 0.5:
+            debugLog("INTRODUCING ERROR INTO PACKET!!!")
             #packet = copy.deepcopy(packet)
             #packet.data += "~"
-            #return
+            return
         self.outgoingPackets.put((address, packet))
 
     def close(self):
