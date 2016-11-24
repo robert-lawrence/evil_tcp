@@ -15,7 +15,7 @@ class FLAG():
 def debugLog(log):
 
     if _debug:
-        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.get_ident()) + log)
+        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.current_thread().ident) + log)
 
 
 class EVILPacket:
@@ -179,14 +179,15 @@ def test():
     pack.printSelf()
     packString = pack.toString()
     ##debugLog(packString.decode(encoding='windows-1252'))
-    debugLog(pack.generateCheckSum())
+    debugLog(hex(pack.generateCheckSum()))
     newPack = EVILPacket()
     newPack = newPack.parseFromString(packString)
     newPack.printSelf()
-    debugLog(newPack.generateCheckSum())
+    debugLog(hex(newPack.generateCheckSum()))
 
     newPackString = newPack.toString()
     newNewPack = EVILPacket()
     newNewPack = newNewPack.parseFromString(newPackString)
     newNewPack.printSelf()
-    debugLog(newNewPack.generateCheckSum())
+    debugLog(hex(newNewPack.generateCheckSum()))
+test()

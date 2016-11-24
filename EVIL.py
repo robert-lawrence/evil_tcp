@@ -46,8 +46,8 @@ class Evil:
 
         while True:
             recipient, packet = self.outgoingPackets.get()
-            debugLog(hex(packet.src_port)+'\n')
-            debugLog(recipient+'\n')
+            debugLog(packet.toString()+'\n')
+            debugLog(str(recipient)+'\n')
             self.sock.sendto(packet.toString(), recipient)
 
 

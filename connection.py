@@ -48,7 +48,6 @@ class Connection:
         ##constructor, needs max window size for requirements and state for bidir
         ##should also initialize buffers etc
         self.currentWindowSize = 1
-        self.state = STATE.CLOSED
 
         self.seq = 0
         self.ack = 0
@@ -151,11 +150,10 @@ class Connection:
         if oldState != STATE.ESTABLISHED:
             if oldState == STATE.CLOSED:
                 pass
-            if oldState == STATE.LISTEN:
-                if dgram.checkFlag(util.FLAG.SYN):
-                    new_dgram.setFlag(util.FLAG.SYN,True)
+            if oldState == STATE.SYN_SENT:
+                if dgram.checkFlag(util.FLAG.SYN) and dgram.checkFlag(util.FLAG.ACK):
                     new_dgram.setFlag(util.FLAG.ACK,True)
-                    setState(STATE.SYN_RECV)
+                    setState(STATE.ESTABLISHED)
                     self.stateCond.notifyAll()
                     self.socket.addToOutput(self.otherAddress,new_dgram)
                     debugLog("Sent SYN+ACK")
@@ -179,6 +177,10 @@ class Connection:
             #TODO !!!
             pass
         else:
+            if dgram.checkFlag(util.FLAG.SYN) and dgram.checkFlag(util.FLAG.ACK):
+                new_dgram.setFlag(util.FLAG.ACK,True)
+                debugLog("Resending ACK")
+                self.socket.addToOutput(self.otherAddress,new_dgram)
             dataLen = len(dgram.data)
             if self.ack + dataLen != dgram.seq:
                 #Out of order packet. Will be dropped.
@@ -218,7 +220,7 @@ class Connection:
             debugLog("sent SYN+ACK")
         elif oldState == STATE.SYN_SENT:
             new_dgram.setFlag(util.FLAG.SYN,True)
-            sent(new_dgram)
+            self.socket.addToOutput(self.otherAddress,new_dgram)
             debugLog("sent SYN")
         elif currState == STATE.ESTABLISHED:
             #Need to resend any unACK-ed data
@@ -230,13 +232,19 @@ class Connection:
         self.stateCond.release()
 
     def establishConnection(self):
+        self.stateCond.acquire()
+        debugLog(str(self.state))
         new_dgram = self.new_dgram()
         new_dgram.setFlag(util.FLAG.SYN,True)
-        debugLog("Sending SYN")
+        if self.state == STATE.SYN_RECV:
+            new_dgram.setFlag(util.FLAG.ACK,True)
+            debugLog("Sending SYN+ACK")
+        else:
+            debugLog("Sending SYN")
         self.socket.addToOutput(self.otherAddress,new_dgram)
-        self.stateCond.acquire()
         while self.state != STATE.ESTABLISHED and self.state != STATE.CLOSED:
             self.stateCond.wait()
+        debugLog(str(self.state))
         self.stateCond.release()
         return
 
@@ -258,7 +266,7 @@ class Connection:
                 dgram = self.dgram_unsent.pop(0)
                 dgram.ack = self.ack
                 debugLog("Sending delayed data")
-                sent(dgram)
+                self.socket.addToOutput(self.otherAddress,dgram)
                 self.dgram_unconf.append(dgram)
             while not self.str_queue_out.empty():
                 held = len(self.dgram_unconf)
