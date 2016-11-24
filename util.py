@@ -87,7 +87,7 @@ class EVILPacket():
         checksum.update(str(self.flags))
         checksum.update(str(self.window))
         checksum.update(self.data)
-        return int(checksum.hexdigest(), 16) & 0xFFFFFFFF
+        return int(int(checksum.hexdigest(), 16) & 0xFFFFFFFF)
 
     def validateCheckSum(self):
         currentCheckSum = self.generateCheckSum()

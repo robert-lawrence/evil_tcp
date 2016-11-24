@@ -38,8 +38,8 @@ class Evil:
             packet.printSelf()
 
             if not packet.validateCheckSum():
-                debugLog("Invalid Checksum, tossing packet")
-                break
+                debugLog("Invalid Checksum,"+ hex(packet.checksum) + " vs. " + hex(packet.generateCheckSum()) + ", tossing packet")
+                continue
 
             if address in self.connections:
                 debugLog("packet belonged to an existing connection")
@@ -119,8 +119,11 @@ class Evil:
         self.outgoingPackets.put((address, packet))
 
     def close(self):
-        for connection in self.connections:
-            connection.close()
+        for c in self.connections:
+            self.connections[c].close()
+            debugLog("connection closed")
+        self.socket.close()
+        debugLog("socket closed")
 
     def setMaxWindowSize(self, W):
         self.maxWindowSize = W

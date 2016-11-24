@@ -112,6 +112,7 @@ class FTAserver():
 
     def terminate(self):
         self.sock.close()
+        debugLog("Server Closed")
         sys.exit()
 
 def main(argv):

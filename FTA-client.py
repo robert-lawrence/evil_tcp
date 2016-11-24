@@ -7,7 +7,7 @@ import os.path
 
 global _debug
 
-MAXFILESIZE = 1024
+MAXFILESIZE = 10240
 
 class FTAclient():
 
@@ -110,7 +110,9 @@ class FTAclient():
 
     def terminate(self):
         self.sock.close()
+        debugLog("Client Closed")
         sys.exit()
+
 
 def main(argv):
     return FTAclient(argv)
@@ -128,12 +130,12 @@ def test(argv):
     f.write("Hello, World!")
     f.close()
     '''
-    app.post("file.txt")
+    app.post("aeneid.txt")
     ##os.rename("file.txt", "file2.txt")
-    app.get("file.txt")
+    ##app.get("img1.jpg")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
-    app.connection.close()
+    app.terminate()
 
 test(sys.argv[1:])
 ##main(sys.argv)

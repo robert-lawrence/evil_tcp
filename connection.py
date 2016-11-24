@@ -16,7 +16,7 @@ from util import debugLog
 import util
 import time
 
-MAX_SEND_BYTES = 1024
+MAX_SEND_BYTES = 800
 
 class STATE():
     CLOSED = 1
@@ -119,6 +119,8 @@ class Connection:
         self.queue_cond.acquire()
         self.queue_cond.notify()
         self.queue_cond.release()
+
+        debugLog("Datachunked into " + str(len(dataChunks)) + " pieces")
 
     ##send a FIN, set state appropriately
     def close(self):
