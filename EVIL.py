@@ -35,12 +35,15 @@ class Evil:
             debugLog("received packet from: " + address[0] + ":" + str(address[1]))
             packet = util.EVILPacket()
             packet = packet.parseFromString(msg)
-            if address in connections:
+            if address in self.connections:
+                debugLog("packet belonged to an existing connection")
                 self.connectionsLock.acquire()
                 self.connections[address].handleIncoming(packet)
                 self.connectionsLock.release()
             else:
-                if packet.checkFlag(FLAGS.SYN):
+                debugLog("packet didn't belong to any existing connections")
+                if packet.checkFlag(util.FLAG.SYN):
+                    debugLog("packet contained syn flag")
                     self.unknownPackets.put((packet, address), False)
 
     def speaker(self):
