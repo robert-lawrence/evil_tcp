@@ -35,6 +35,11 @@ class Evil:
             debugLog("received packet from: " + address[0] + ":" + str(address[1]))
             packet = util.EVILPacket()
             packet = packet.parseFromString(msg)
+            
+            if not packet.validateCheckSum():
+                debugLog("Invalid Checksum, tossing packet")
+                break
+
             if address in self.connections:
                 debugLog("packet belonged to an existing connection")
                 self.connectionsLock.acquire()
@@ -85,10 +90,6 @@ class Evil:
         self.connectionsLock.release()
 
         newConn.establishConnection()
-
-        newConn.establishedCondition.acquire()
-        newConn.establishedCondition.wait()
-        newConn.establishedCondition.release()
         return newConn
 
 

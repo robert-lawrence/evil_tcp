@@ -3,8 +3,11 @@ import getopt
 import EVIL
 import threading
 from util import debugLog
+import os.path
 
 global _debug
+
+MAXFILESIZE = 1024
 
 class FTAclient:
 
@@ -43,8 +46,47 @@ class FTAclient:
 
     def get(self, F):
         if self.connected:
-            self.connection.send(F)
-            print(self.connection.get(1024))
+            self.connection.send("get")
+            ans = self.connection.get(1024)
+            if ans == "readyget":
+                f = open(F, 'w')
+                self.connection.send(F)
+                debugLog("sent file request to server")
+                f.write(self.connection.get(MAXFILESIZE))
+                f.close()
+                debugLog("File Transfer Complete")
+                return True
+            else:
+                debugLog("server did not respond with 'readyget' to 'get' request, file may not exist")
+                return False
+        else:
+            raise UnboundLocalError('Client has no connection to a server, cannot fetch')
+
+    def post(self, F):
+        if not os.path.isfile(F):
+            debugLog("Passed filename wasn't a file")
+            return False
+
+        if self.connected:
+            self.connection.send("post")
+            ans = self.connection.get(1024)
+            if ans == "readypost":
+                self.connection.send(F)
+                ans = self.connection.get(1024)
+                if ans == F:
+                    debugLog("server ready to receive and acknowledged filename")
+                    f = open(F, 'r')
+                    self.connection.send(f.read(MAXFILESIZE))
+                    debugLog("sent file post to server")
+                    f.close()
+                    debugLog("File Transfer Complete")
+                    return True
+                else:
+                    debugLog("server did not correctly acknowledge filename")
+                    return False
+            else:
+                debugLog("server did not respond with 'readypost' to 'post' request")
+                return False
         else:
             raise UnboundLocalError('Client has no connection to a server, cannot fetch')
 
@@ -62,10 +104,17 @@ def test(argv):
     app = main(argv)
     app.connect()
     print("APPCONNECTEDDDDDDDDDDDDDDDDDDDDDD")
-    app.connection.send("Hello, World!")
-    print("APPSENNNNNNNNNNNNNNNNNNTTTTTTTTTT")
-    print(str(app.connection.get(1024)))
-    print("APPRECVVVVVVVVVVVVVVDDDDDDDDDDDDD")
+    os.remove("file.txt")
+    os.remove("file2.txt")
+    f = open("file.txt", 'w')
+    f.write("Hello, World!")
+    f.close()
+    app.post("file.txt")
+    os.rename("file.txt", "file2.txt")
+    app.get("file.txt")
+    print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
+    app.get("file.txt")
+    print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
 
 test(sys.argv[1:])
 ##main(sys.argv)
