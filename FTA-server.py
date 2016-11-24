@@ -11,7 +11,7 @@ class FTAserver:
     def operate(self):
         while True:
             newSessionConnection = self.sock.accept()
-            debugLog("accepted connection from " + newSession.otherAddress[0] + ":" + str(newSession.otherAddress[1]))
+            debugLog("accepted connection from " + newSessionConnection.otherAddress[0] + ":" + str(newSessionConnection.otherAddress[1]))
             sessionThread = threading.Thread(None, handleSession, newSessionConnection)
             sessionThread.start()
 
@@ -36,7 +36,7 @@ class FTAserver:
 
         for opt, arg in opts:
                 if opt == '-x':
-                    self.ourPort = arg
+                    self.ourPort = int(arg)
                 elif opt == '-d':
                     _debug = True
                     debugLog("Maximum Verbosity!")
@@ -61,5 +61,5 @@ def main(argv):
 def test(argv):
     app = main(argv)
 
-test(sys.argv)
+test(sys.argv[1:])
 ##main(sys.argv)
