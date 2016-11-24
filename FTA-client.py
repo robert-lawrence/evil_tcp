@@ -121,6 +121,7 @@ def test(argv):
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     app.get("file.txt")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
+    app.connection.close()
 
 test(sys.argv[1:])
 ##main(sys.argv)
