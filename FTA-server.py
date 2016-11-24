@@ -44,10 +44,10 @@ class FTAserver():
                     conn.send("post")
             elif self.sessionState == SESSIONSTATE.GET_1:
                 self.filename = string
-                if os.path.isfile(filename):
+                if os.path.isfile(self.filename):
                     self.sessionState = SESSIONSTATE.GET_2
                     debugLog("Session now get 2")
-                    f = open(filename,'r')
+                    f = open(self.filename,'r')
                     fileLen = len(f.read())
                     conn.send("got it: "+str(fileLen))
                     f.close()
@@ -57,7 +57,7 @@ class FTAserver():
                     conn.send("back to idle")
             elif self.sessionState == SESSIONSTATE.GET_2:
                 if string == "send file":
-                    f = open(filename, 'r')
+                    f = open(self.filename, 'r')
                     conn.send(f.read())
                     f.close()
                     conn.send("back to idle")
@@ -71,7 +71,7 @@ class FTAserver():
                 debugLog("Session now post 2")
                 conn.send("send file")
             elif self.sessionState == SESSIONSTATE.POST_2:
-                    f = open(filename, 'w')
+                    f = open(self.filename, 'w')
                     f.write(string)
                     f.close()
                     debugLog("Post Complete")
