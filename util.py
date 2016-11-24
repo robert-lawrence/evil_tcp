@@ -94,10 +94,13 @@ class EVILPacket:
         return (currentCheckSum == self.checksum)
 
   def checkFlag(self, flag):
-        return (self.flags & flag)
+        return (self.flags & flag) > 0
 
   def setFlag(self, flag, tf=True):
-        self.flags = self.flags & flag if tf else ~flag
+        if tf:
+            self.flags = self.flags | flag
+        else:
+            self.flags = self.flags & ~flag
 
 def getFromBytes(pos, size, string):
     temp = 0
