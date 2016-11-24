@@ -13,15 +13,15 @@ class FTAserver:
             debugLog("server accepting connections...")
             newSessionConnection = self.sock.accept()
             debugLog("accepted connection from " + newSessionConnection.otherAddress[0] + ":" + str(newSessionConnection.otherAddress[1]))
-            sessionThread = threading.Thread(None, handleSession, newSessionConnection, "session_thread")
+            sessionThread = threading.Thread(None, self.handleSession, "session_thread", (newSessionConnection,))
             sessionThread.start()
 
     def handleSession(self, conn):
         debugLog("new session started with " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
         while True:
-            string = conn.get(maxMessageSize)
-            debugLog("received " + string.data + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
-            reply = string.data.upper()
+            string = conn.get(1024)
+            debugLog("received " + string + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
+            reply = string.upper()
             debugLog("replying to " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]) + " with: " + reply)
             conn.send(reply)
 

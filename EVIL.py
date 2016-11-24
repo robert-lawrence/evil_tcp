@@ -86,9 +86,6 @@ class Evil:
 
         newConn.establishConnection()
 
-        newConn.establishedCondition.acquire()
-        newConn.establishedCondition.wait()
-        newConn.establishedCondition.release()
         return newConn
 
 

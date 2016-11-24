@@ -221,9 +221,9 @@ class Connection:
                 i += 1
             if len(dgram.data) != 0:
                 self.str_queue_in.put(dgram.data)
-            new_dgram = self.new_dgram() #get new ack number
-            debugLog("ACKing received packet")
-            self.socket.addToOutput(self.otherAddress,new_dgram)
+                new_dgram = self.new_dgram() #get new ack number
+                debugLog("ACKing received packet")
+                self.socket.addToOutput(self.otherAddress,new_dgram)
         self.stateCond.release()
 
     def checkTimeout(self):
