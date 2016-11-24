@@ -16,7 +16,7 @@ class FLAG():
 def debugLog(log):
 
     if _debug:
-        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.current_thread().ident) + " " + log)
+        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.current_thread().name) + " " + log)
 
 
 class EVILPacket:
