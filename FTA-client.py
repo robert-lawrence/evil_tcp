@@ -25,14 +25,14 @@ class FTAclient:
                 if opt == '-a':
                     self.serverAddress = arg
                 elif opt == '-p':
-                    self.serverPort = arg
+                    self.serverPort = int(arg)
                 elif opt == '-d':
                     _debug = True
                     debugLog("Maximum Verbosity!")
 
         self.sock = EVIL.Evil()
-        self.sock.bind(('', 0)) ##tells os to bind to all hostnames on this machine with a chosen available port
-        debugLog("socket bound to: " + sock.getsockname()[0] + ":" + str(sock.getsockname()[1]))
+        self.sock.bind('', 0) ##tells os to bind to all hostnames on this machine with a chosen available port
+        debugLog("socket bound to: " + self.sock.sock.getsockname()[0] + ":" + str(self.sock.sock.getsockname()[1]))
 
 
 
@@ -63,5 +63,5 @@ def test(argv):
     app.connect()
     app.get("Hello, World")
 
-test(sys.argv)
+test(sys.argv[1:])
 ##main(sys.argv)

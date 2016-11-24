@@ -69,7 +69,10 @@ class Evil:
         unknownPacket = unknownPackets.get()
 
         self.connectionsLock.acquire()
-        newConn = Connection(self.port, unknownPacket[0], self.maxWindowSize, connection.STATE.SYN_RECV, unknownPacket[1], self)
+
+        newConn = Connection(self.port, unknownPacket[0], self.maxWindowSize,
+        connection.STATE.SYN_RECV, unknownPacket[1], self)
+
         self.connections[((unknownPacket[0], unknownPacket[1]), CONN)] = newConn
         self.connectionsLock.release()
 
@@ -91,7 +94,10 @@ class Evil:
         Errors: if socket closed, throw exception
         """
         self.connectionsLock.acquire()
-        newConn = Connection(self.port, port, self.maxWindowSize, connection.STATE.SYN_SENT, host, self)
+
+        newConn = Connection(self.port, port, self.maxWindowSize,
+        connection.STATE.SYN_SENT, host, self)
+        
         self.connections[((host, port), CONN)] = newConn
         self.connectionsLock.release()
         newConn.establishConnection()
