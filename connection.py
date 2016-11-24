@@ -222,7 +222,7 @@ class Connection:
             j = len(self.dgram_unconf)
             i = 0
             while i < j:
-                if self.dgram_unconf[i].ack <= rcvd_ack:
+                if self.dgram_unconf[i].seq <= rcvd_ack:
                     self.dgram_unconf.pop(i)
                     i -= 1
                     j -= 1
