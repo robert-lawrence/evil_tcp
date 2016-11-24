@@ -39,13 +39,13 @@ class FTAserver():
                     debugLog("Session now get 1")
                     conn.send("get")
                 elif string == "post":
-                    self.sessionState == SESSIONSTATE.POST_1
+                    self.sessionState = SESSIONSTATE.POST_1
                     debugLog("Session now post 1")
                     conn.send("post")
             elif self.sessionState == SESSIONSTATE.GET_1:
                 self.filename = string
                 if os.path.isfile(filename):
-                    self.sessionState == SESSIONSTATE.GET_2
+                    self.sessionState = SESSIONSTATE.GET_2
                     debugLog("Session now get 2")
                     conn.send("got it")
                 else:
@@ -64,7 +64,7 @@ class FTAserver():
                     conn.send("back to idle")
             elif self.sessionState == SESSIONSTATE.POST_1:
                 self.filename = string
-                self.sessionState == SESSIONSTATE.POST_2
+                self.sessionState = SESSIONSTATE.POST_2
                 debugLog("Session now post 2")
                 conn.send("send file")
             elif self.sessionState == SESSIONSTATE.POST_2:
