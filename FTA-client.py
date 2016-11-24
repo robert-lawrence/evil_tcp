@@ -51,10 +51,15 @@ class FTAclient():
             if ans == "get":
                 self.connection.send(F)
                 debugLog("sent file request to server")
-                if ans == "got it":
+                if ans[0:8] == "got it: ":
+                    fileSize = ans[8:]
                     self.connection.send("send file")
                     f = open(F, 'w')
-                    f.write(self.connection.get(MAXFILESIZE))
+                    fileData = ""
+                    while len(fileData) < fileSize:
+                        fileData += self.connection.get(MAXFILESIZE)
+                    # could debug, make sure len is exactly right
+                    f.write(fileData)
                     f.close()
                     debugLog("File Transfer Complete")
                     return True
