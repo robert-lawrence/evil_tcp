@@ -2,7 +2,7 @@ import sys
 import getopt
 import EVIL
 import threading
-import util
+from util import debugLog
 import os.path
 
 MAXFILESIZE = 10240
@@ -14,9 +14,6 @@ class FTAclient():
         self.serverPort = 1337
         self.maxMessageSize = 1024
         self.connected = False
-
-        global _debug
-        _debug = False
 
         try:
             opts, args = getopt.getopt(argv, "a:p:d")
