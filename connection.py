@@ -124,6 +124,7 @@ class Connection:
 
     ##send a FIN, set state appropriately
     def close(self):
+        debugLog("connection.close() called!")
         if self.state == STATE.CLOSED:
             raise Exception("Cannot close an already-closed connection")
         dgram = self.new_dgram()
@@ -237,7 +238,7 @@ class Connection:
         self.stateCond.release()
 
     def checkTimeout(self):
-        if time.clock() - self.resendTimer < DEFAULT_TIMEOUT:
+        if (time.time() - self.resendTimer) < self.DEFAULT_TIMEOUT:
             return
         new_dgram = self.new_dgram()
         self.stateCond.acquire()
@@ -247,18 +248,18 @@ class Connection:
             new_dgram.setFlag(util.FLAG.SYN,True)
             new_dgram.setFlag(util.FLAG.ACK,True)
             self.socket.addToOutput(self.otherAddress,new_dgram)
-            debugLog("sent SYN+ACK")
+            debugLog("resent SYN+ACK")
         elif oldState == STATE.SYN_SENT:
             new_dgram.setFlag(util.FLAG.SYN,True)
             self.socket.addToOutput(self.otherAddress,new_dgram)
-            debugLog("sent SYN")
-        elif currState == STATE.ESTABLISHED:
+            debugLog("resent SYN")
+        elif oldState == STATE.ESTABLISHED:
             #Need to resend any unACK-ed data
             for dgram in self.dgram_unconf:
                 debugLog("Resending data")
                 self.socket.addToOutput(self.otherAddress,dgram)
 
-        self.resendTimer = 0
+        self.resendTimer = time.time()
         self.stateCond.release()
 
     def establishConnection(self):
@@ -282,7 +283,7 @@ class Connection:
     # Waits for input, calls appropriate fn
     def c_thread(self):
 
-        self.resendTimer = time.clock()
+        self.resendTimer = time.time()
         while True:
             cond = self.queue_cond
             cond.acquire()
@@ -309,4 +310,5 @@ class Connection:
             if self.state == STATE.CLOSED:
                 debugLog("Connection closed")
                 break
+            self.checkTimeout()
         #TODO: call socket fn to remove conn from list

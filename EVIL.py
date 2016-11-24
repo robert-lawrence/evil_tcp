@@ -10,6 +10,8 @@ import Queue
 import connection
 import util
 from util import debugLog
+import random
+import copy
 
 class Evil:
     BUFSIZE = 1000
@@ -116,6 +118,11 @@ class Evil:
 
     def addToOutput(self, address, packet):
         packet.checksum = packet.generateCheckSum()
+        #if random.random() < 0.4:
+            #debugLog("INTRODUCING ERROR INTO PACKET!!!")
+            #packet = copy.deepcopy(packet)
+            #packet.data += "~"
+            #return
         self.outgoingPackets.put((address, packet))
 
     def close(self):

@@ -132,7 +132,6 @@ def test(argv):
     '''
     app.post("aeneid.txt")
     ##os.rename("file.txt", "file2.txt")
-    ##app.get("img1.jpg")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
     app.terminate()
