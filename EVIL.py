@@ -30,8 +30,10 @@ class Evil:
         debugLog("listenerThread started on port " + str(self.sock.getsockname()[1]))
 
         while True:
-            msg, address = self.sock.recvfrom(Evil.BUFSIZE)
-            packet = EVILPacket()
+            debugLog("receiving")
+            msg, address = self.sock.recvfrom(1024)
+            debugLog("received packet from: " + address[0] + ":" + str(address[1]))
+            packet = util.EVILPacket()
             packet = packet.parseFromString(msg)
             if address in connections:
                 self.connectionsLock.acquire()
@@ -46,10 +48,10 @@ class Evil:
 
         while True:
             recipient, packet = self.outgoingPackets.get()
-            debugLog(packet.toString()+'\n')
+            debugLog(hex(packet.checksum)+'\n')
             debugLog(str(recipient)+'\n')
             self.sock.sendto(packet.toString(), recipient)
-
+            debugLog("sent: " + packet.toString())
 
 
     def bind(self, host, port):
@@ -69,7 +71,7 @@ class Evil:
         Errors: if socket closed, throw exception
         """
         unknownPacket = unknownPackets.get()
-
+        debugLog("got unknown packet for accept call")
         self.connectionsLock.acquire()
 
         newConn = Connection(self.port, unknownPacket[0], self.maxWindowSize,

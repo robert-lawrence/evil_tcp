@@ -23,7 +23,7 @@ class FTAclient:
 
         for opt, arg in opts:
                 if opt == '-a':
-                    self.serverAddress = arg
+                    self.serverAddress = str(arg)
                 elif opt == '-p':
                     self.serverPort = int(arg)
                 elif opt == '-d':

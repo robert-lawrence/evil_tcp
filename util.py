@@ -153,7 +153,7 @@ def getFromBytes(pos, size, string):
     temp = 0
     for offset in range(0, size):
         temp = temp << 8
-        temp = temp | string[pos + offset]
+        temp = temp | int(string[pos + offset])
     return temp
 
 def setInBytes(pos, size, string, value):

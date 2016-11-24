@@ -42,8 +42,8 @@ class FTAserver:
                     debugLog("Maximum Verbosity!")
 
         self.sock = EVIL.Evil()
-        self.sock.bind('', self.ourPort)
-        debugLog("socket bound to: " + str(self.ourPort))
+        self.sock.bind('172.17.0.2', self.ourPort)
+        debugLog("socket bound to: " + self.sock.sock.getsockname()[0] + ":" + str(self.ourPort))
 
         operateThread = threading.Thread(None, self.operate)
 
