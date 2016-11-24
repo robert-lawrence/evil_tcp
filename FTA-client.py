@@ -2,10 +2,8 @@ import sys
 import getopt
 import EVIL
 import threading
-from util import debugLog
+import util
 import os.path
-
-global _debug
 
 MAXFILESIZE = 10240
 
@@ -16,7 +14,9 @@ class FTAclient():
         self.serverPort = 1337
         self.maxMessageSize = 1024
         self.connected = False
+
         global _debug
+        _debug = False
 
         try:
             opts, args = getopt.getopt(argv, "a:p:d")
@@ -30,7 +30,6 @@ class FTAclient():
                 elif opt == '-p':
                     self.serverPort = int(arg)
                 elif opt == '-d':
-                    _debug = True
                     debugLog("Maximum Verbosity!")
 
         self.sock = EVIL.Evil()
@@ -134,7 +133,7 @@ def test(argv):
     ##os.rename("file.txt", "file2.txt")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
-    app.terminate()
+    ##app.terminate()
 
 test(sys.argv[1:])
 ##main(sys.argv)

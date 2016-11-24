@@ -114,13 +114,14 @@ class Connection:
         while len(data) != 0:
             dataChunks.append(data[:MAX_SEND_BYTES])
             data = data[MAX_SEND_BYTES:]
+
         for i in range(len(dataChunks)):
             self.str_queue_out.put(dataChunks[i],block,timeout)
         self.queue_cond.acquire()
         self.queue_cond.notify()
         self.queue_cond.release()
 
-        debugLog("Datachunked into " + str(len(dataChunks)) + " pieces")
+
 
     ##send a FIN, set state appropriately
     def close(self):

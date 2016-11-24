@@ -5,18 +5,14 @@ import time
 import threading
 import struct
 
-_debug = True
-_showTime = False
-
 class FLAG():
     FIN = 1 << 15
     SYN = FIN >> 1
     ACK = SYN >> 1
 
 def debugLog(log):
-
-    if _debug:
-        print((str(time.clock()) + " " if _showTime else "") + " Thread: " +  str(threading.current_thread().name) + " " + log)
+    if  '-d' in sys.argv:
+        print(" Thread: " +  str(threading.current_thread().name) + " " + log)
 
 
 class EVILPacket():

@@ -97,7 +97,6 @@ class FTAserver():
                 if opt == '-x':
                     self.ourPort = int(arg)
                 elif opt == '-d':
-                    _debug = True
                     debugLog("Maximum Verbosity!")
 
         self.sock = EVIL.Evil()
