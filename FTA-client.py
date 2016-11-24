@@ -9,7 +9,7 @@ global _debug
 
 MAXFILESIZE = 1024
 
-class FTAclient:
+class FTAclient():
 
     def __init__(self, argv):
         self.serverAddress = "127.0.0.1"
@@ -48,16 +48,22 @@ class FTAclient:
         if self.connected:
             self.connection.send("get")
             ans = self.connection.get(1024)
-            if ans == "readyget":
-                f = open(F, 'w')
+            if ans == "get":
                 self.connection.send(F)
                 debugLog("sent file request to server")
-                f.write(self.connection.get(MAXFILESIZE))
-                f.close()
-                debugLog("File Transfer Complete")
-                return True
+                if ans == "got it":
+                    self.connection.send("send file")
+                    f = open(F, 'w')
+                    f.write(self.connection.get(MAXFILESIZE))
+                    f.close()
+                    debugLog("File Transfer Complete")
+                    return True
+                else:
+                    debugLog("server did not acknowledge filename, may not be on server")
+                    return False
+
             else:
-                debugLog("server did not respond with 'readyget' to 'get' request, file may not exist")
+                debugLog("server did not respond with 'get' to get request, may be in the wrong state")
                 return False
         else:
             raise UnboundLocalError('Client has no connection to a server, cannot fetch')
@@ -70,11 +76,11 @@ class FTAclient:
         if self.connected:
             self.connection.send("post")
             ans = self.connection.get(1024)
-            if ans == "readypost":
+            if ans == "post":
                 self.connection.send(F)
                 ans = self.connection.get(1024)
-                if ans == F:
-                    debugLog("server ready to receive and acknowledged filename")
+                if ans == "send file":
+                    debugLog("server ready to receive")
                     f = open(F, 'r')
                     self.connection.send(f.read(MAXFILESIZE))
                     debugLog("sent file post to server")
@@ -82,7 +88,7 @@ class FTAclient:
                     debugLog("File Transfer Complete")
                     return True
                 else:
-                    debugLog("server did not correctly acknowledge filename")
+                    debugLog("server did not correctly acknowledge for receipt of file")
                     return False
             else:
                 debugLog("server did not respond with 'readypost' to 'post' request")
