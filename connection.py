@@ -216,7 +216,7 @@ class Connection:
             socket.addToOutput(self.otherAddress,new_dgram)
             debugLog("sent SYN+ACK")
         elif oldState == STATE.SYN_SENT:
-            newdgram.setFlag(util.FLAG.SYN,True)
+            new_dgram.setFlag(util.FLAG.SYN,True)
             sent(new_dgram)
             debugLog("sent SYN")
         elif currState == STATE.ESTABLISHED:
@@ -226,8 +226,18 @@ class Connection:
                 socket.addToOutput(self.otherAddress,dgram)
 
         self.resendTimer = 0
-        self.sateCond.release()
+        self.stateCond.release()
 
+    def establishConnection(self):
+        new_dgram = self.new_dgram()
+        new_dgram.setFlag(util.FLAG.SYN,True)
+        debugLog("Sending SYN")
+        socket.addToOutput(self.otherAddress,new_dgram)
+        self.stateCond.acquire()
+        while self.state != STATE.ESTABLISHED and self.state != STATE.CLOSED:
+            self.stateCond.wait()
+        self.stateCond.release()
+        return
 
 
     # Waits for input, calls appropriate fn
