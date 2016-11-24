@@ -41,13 +41,12 @@ class Connection:
         self.max_send_size = 1
         self.state = state
         self.stateCond = threading.Condition()
-        self.otherAddress = otherAddress
+        self.otherAddress = (otherAddress,dst_port)
         self.src_port = src_port
         self.dst_port = dst_port
 
         ##constructor, needs max window size for requirements and state for bidir
         ##should also initialize buffers etc
-        self.otherAddress = ("not initialized", 0)
         self.currentWindowSize = 1
         self.state = STATE.CLOSED
 
@@ -81,7 +80,7 @@ class Connection:
 
     ##called by the socket on each connection passing in a packet that was
     ##sent to the connection, could be an ack or data, checksum has been done
-    def handleIncoming(packet):
+    def handleIncoming(self,packet):
         try:
             self.dgram_queue_in.put(packet,timeout=0.5)
             self.queue_cond.acquire()
@@ -93,7 +92,7 @@ class Connection:
 
     ##called by the application when it wants to read the data from the stream
     ##pauses until data is available, deletes data from the buffer once gotten
-    def get(maxSize,block=True,timeout=None):
+    def get(self,maxSize,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED and self.str_queue_out.empty():
             raise Exception("Cannot read from non-established connection")
         return self.str_queue_out.get(block,timeout)
@@ -101,7 +100,7 @@ class Connection:
 
     ##called by the application when it wants to send data to the connection
     ##should add the data to the output buffer, then handle it when appropriate
-    def send(data,block=True,timeout=None):
+    def send(self,data,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED:
             raise Exception("Cannot write to non-established connection")
         self.str_queue_in.put(data,block,timeout)
@@ -110,17 +109,17 @@ class Connection:
         self.queue_cond.release()
 
     ##send a FIN, set state appropriately
-    def close():
+    def close(self):
         pass
 
 
-    def new_dgram(seq=None,ack=None):
+    def new_dgram(self,seq=None,ack=None):
         if seq == None:
             seq = self.seq
         if ack == None:
             ack = self.ack
         dgram = util.EVILPacket()
-        dgram.src_port = self.my_port
+        dgram.src_port = self.src_port
         dgram.dst_port = self.dst_port
         dgram.seq = seq
         dgram.ack = ack
@@ -142,7 +141,7 @@ class Connection:
             self.dgram_unsent.append(dgram)
         else:
             self.dgram_unconf.append(dgram)
-            socket.addToOutput(self.otherAddress,dgram)
+            self.socket.addToOutput(self.otherAddress,dgram)
 
     def process_dgram(self,dgram):
         self.stateCond.acquire()
@@ -158,7 +157,7 @@ class Connection:
                     new_dgram.setFlag(util.FLAG.ACK,True)
                     setState(STATE.SYN_RECV)
                     self.stateCond.notifyAll()
-                    socket.addToOutput(self.otherAddress,new_dgram)
+                    self.socket.addToOutput(self.otherAddress,new_dgram)
                     debugLog("Sent SYN+ACK")
             if oldState == STATE.SYN_RECV:
                 if dgram.checkFlag(util.FLAG.ACK):
@@ -184,7 +183,7 @@ class Connection:
             if self.ack + dataLen != dgram.seq:
                 #Out of order packet. Will be dropped.
                 # Re-acknowledge last received in-order packet
-                socket.addToOutput(self.otherAddress,new_dgram)
+                self.socket.addToOutput(self.otherAddress,new_dgram)
                 debugLog("Received packet out-of-order. Re-ACKing last received packet")
                 return
 
@@ -202,7 +201,7 @@ class Connection:
                 self.str_queue_in.put(dgram.data)
             new_dgram = self.new_dgram() #get new ack number
             debugLog("ACKing received packet")
-            socket.addToOutput(self.otherAddress,new_dgram)
+            self.socket.addToOutput(self.otherAddress,new_dgram)
         self.stateCond.release()
 
     def checkTimeout(self):
@@ -215,7 +214,7 @@ class Connection:
         if oldState == STATE.SYN_RECV:
             new_dgram.setFlag(util.FLAG.SYN,True)
             new_dgram.setFlag(util.FLAG.ACK,True)
-            socket.addToOutput(self.otherAddress,new_dgram)
+            self.socket.addToOutput(self.otherAddress,new_dgram)
             debugLog("sent SYN+ACK")
         elif oldState == STATE.SYN_SENT:
             new_dgram.setFlag(util.FLAG.SYN,True)
@@ -225,7 +224,7 @@ class Connection:
             #Need to resend any unACK-ed data
             for dgram in self.dgram_unconf:
                 debugLog("Resending data")
-                socket.addToOutput(self.otherAddress,dgram)
+                self.socket.addToOutput(self.otherAddress,dgram)
 
         self.resendTimer = 0
         self.stateCond.release()
@@ -234,7 +233,7 @@ class Connection:
         new_dgram = self.new_dgram()
         new_dgram.setFlag(util.FLAG.SYN,True)
         debugLog("Sending SYN")
-        socket.addToOutput(self.otherAddress,new_dgram)
+        self.socket.addToOutput(self.otherAddress,new_dgram)
         self.stateCond.acquire()
         while self.state != STATE.ESTABLISHED and self.state != STATE.CLOSED:
             self.stateCond.wait()
@@ -243,7 +242,7 @@ class Connection:
 
 
     # Waits for input, calls appropriate fn
-    def c_thread():
+    def c_thread(self):
 
         self.resendTimer = time.clock()
         while True:

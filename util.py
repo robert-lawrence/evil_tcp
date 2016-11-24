@@ -47,7 +47,7 @@ class EVILPacket:
         self.flags = 0
         self.window = 0
         self.checksum = 0
-        self.data = 0
+        self.data = ""
 
   def parseFromString(self, string):
         current = 0
