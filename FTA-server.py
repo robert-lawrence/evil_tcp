@@ -19,8 +19,8 @@ class FTAserver:
         debugLog("new session started with " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
         while True:
             string = conn.get(maxMessageSize)
-            debugLog("received " + string + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
-            reply = string.upper()
+            debugLog("received " + string.data + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
+            reply = string.data.upper()
             debugLog("replying to " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]) + " with: " + reply)
             conn.send(reply)
 
