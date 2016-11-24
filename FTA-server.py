@@ -47,7 +47,10 @@ class FTAserver():
                 if os.path.isfile(filename):
                     self.sessionState = SESSIONSTATE.GET_2
                     debugLog("Session now get 2")
-                    conn.send("got it")
+                    f = open(filename,'r')
+                    fileLen = len(f.read())
+                    conn.send("got it: "+str(fileLen))
+                    f.close()
                 else:
                     self.sessionState == SESSIONSTATE.IDLE
                     debugLog("Session now idle")
