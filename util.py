@@ -15,7 +15,7 @@ class FLAG():
 def debugLog(log):
 
     if _debug:
-        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.current_thread().ident) + log)
+        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.current_thread().ident) + " " + log)
 
 
 class EVILPacket:
@@ -86,8 +86,7 @@ class EVILPacket:
         return self
 
   def toString(self):
-        current = 0;
-        size = 0;
+        current = 0
         temp = bytearray(20 + sys.getsizeof(self.data))
         size = 2
         temp = setInBytes(current, size, temp, self.src_port)
@@ -163,7 +162,7 @@ def setInBytes(pos, size, string, value):
             string[pos + offset] = ord(value[offset])
         else:
             string[pos + size - offset - 1] = (value >> (offset * 8)) & 0xFF
-        return string
+    return string
 
 def test():
     pack = EVILPacket()
