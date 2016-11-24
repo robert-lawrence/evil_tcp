@@ -14,7 +14,7 @@ class FLAG():
 def debugLog(log):
 
     if _debug:
-        print(time.asctime() if _showTime else "" + log)
+        print((time.asctime() if _showTime else "") + log)
 
 class EVILPacket:
   '''

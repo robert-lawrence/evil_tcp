@@ -36,7 +36,7 @@ class FTAserver:
 
         for opt, arg in opts:
                 if opt == '-x':
-                    self.ourPort = arg
+                    self.ourPort = int(arg)
                 elif opt == '-d':
                     _debug = True
                     debugLog("Maximum Verbosity!")
@@ -61,5 +61,5 @@ def main(argv):
 def test(argv):
     app = main(argv)
 
-test(sys.argv)
+test(sys.argv[1:])
 ##main(sys.argv)

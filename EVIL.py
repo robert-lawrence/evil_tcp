@@ -13,7 +13,6 @@ from util import debugLog
 
 class Evil:
     BUFSIZE = 1000
-    DEFAULTMAXWIN = 1
 
     def __init__(self):
 
@@ -24,6 +23,8 @@ class Evil:
         self.outgoingPackets = Queue.Queue()
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        self.maxWindowSize = 1
 
     def listener(self):
         debugLog("listenerThread started on port " + str(self.sock.getsockname()[1]))
@@ -68,7 +69,7 @@ class Evil:
         unknownPacket = unknownPackets.get()
 
         self.connectionsLock.acquire()
-        newConn = Connection(self.port, unknownPacket[0], Evil.DEFAULTMAXWIN, STATE.SYN_RECV, unknownPacket[1], self)
+        newConn = Connection(self.port, unknownPacket[0], self.maxWindowSize, connection.STATE.SYN_RECV, unknownPacket[1], self)
         self.connections[((unknownPacket[0], unknownPacket[1]), CONN)] = newConn
         self.connectionsLock.release()
 
@@ -90,7 +91,7 @@ class Evil:
         Errors: if socket closed, throw exception
         """
         self.connectionsLock.acquire()
-        newConn = Connection(self.port, port, Evil.DEFAULTMAXWIN, STATE.SYN_SENT, host, self)
+        newConn = Connection(self.port, port, self.maxWindowSize, connection.STATE.SYN_SENT, host, self)
         self.connections[((host, port), CONN)] = newConn
         self.connectionsLock.release()
         newConn.establishConnection()
@@ -103,3 +104,8 @@ class Evil:
     def close(self):
         for connection in self.connections:
             connection.close()
+
+    def setMaxWindowSize(self, W):
+        self.maxWindowSize = W
+        for connection in self.connections:
+            connection.setMaxWindowSize(W)

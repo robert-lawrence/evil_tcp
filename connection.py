@@ -76,6 +76,8 @@ class Connection:
             self.resendTimer = 0
         self.stateCond.release()
 
+    def setMaxWindowSize(self, W):
+        self.max_window_size = W
 
     ##called by the socket on each connection passing in a packet that was
     ##sent to the connection, could be an ack or data, checksum has been done

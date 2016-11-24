@@ -37,9 +37,9 @@ class FTAclient:
 
 
     def connect(self):
-        self.connection = self.sock.connect(serverAddress, serverPort)
+        self.connection = self.sock.connect(self.serverAddress, self.serverPort)
         self.connected = True
-        debugLog("created connection with " + newSession.otherAddress[0] + ":" + str(newSession.otherAddress[1]))
+        debugLog("created connection with " + self.connection.otherAddress[0] + ":" + str(self.connection.otherAddress[1]))
 
     def get(self, F):
         if self.connected:
