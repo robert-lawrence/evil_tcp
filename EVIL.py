@@ -5,7 +5,7 @@
 
 import socket
 import threading
-import queue
+import Queue
 
 import connection
 import util
@@ -19,14 +19,14 @@ class Evil:
 
         self.connections = []
         self.connectionsLock = threading.Lock()
-        self.unknownPackets = queue.Queue()
+        self.unknownPackets = Queue.Queue()
 
-        self.outgoingPackets = queue.Queue()
+        self.outgoingPackets = Queue.Queue()
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def listener(self):
-        debugLog("listenerThread started on port " + PORT)
+        debugLog("listenerThread started on port " + str(self.sock.getsockname()[1]))
 
         while True:
             msg, address = self.sock.recvfrom(Evil.BUFSIZE)
@@ -41,7 +41,7 @@ class Evil:
                     self.unknownPackets.put((packet, address), False)
 
     def speaker(self):
-        debugLog("speakerThread started on port " + PORT)
+        debugLog("speakerThread started on port " + str(self.sock.getsockname()[1]))
 
         while True:
             recipient, packet = self.outgoingPackets.get()
@@ -50,10 +50,10 @@ class Evil:
 
 
     def bind(self, host, port):
-        self.sock.bind(host, port)
-        listenerThread = threading.Thread(None, listener, listenerThread)
+        self.sock.bind((host, port))
+        listenerThread = threading.Thread(None, self.listener)
         listenerThread.start()
-        speakerThread = threading.Thread(None, speaker, speakerThread)
+        speakerThread = threading.Thread(None, self.speaker)
         speakerThread.start()
 
     def accept(self):

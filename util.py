@@ -79,7 +79,7 @@ class EVILPacket:
 
         self.data = ""
         for i in range(current, len(string) + 32 - 69):
-        self.data += chr(getFromBytes(i, 1, string))
+            self.data += chr(getFromBytes(i, 1, string))
 
         return self
 
@@ -145,7 +145,7 @@ class EVILPacket:
   def checkFlag(self, flag):
         return (self.flags & flag)
 
-  def setFlag(self, flag, tf=True)
+  def setFlag(self, flag, tf=True):
         self.flags = self.flags & flag if tf else ~flag
 
 def getFromBytes(pos, size, string):

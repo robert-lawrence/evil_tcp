@@ -8,30 +8,6 @@ global _debug
 
 class FTAserver:
 
-    def __init__(self, argv):
-        self.ourPort = 404
-        self.maxMessageSize = 1024
-
-        try:
-            opts, args = getopt.getop(argv, "x:d")
-        except getopt.GetopError:
-            usage()
-            sys.exit(2)
-
-        for opt, arg in opts:
-                if opt == '-x':
-                    self.ourPort = arg
-                elif opt == '-d':
-                    _debug = True
-                    debugLog("Maximum Verbosity!")
-
-        self.sock = EVIL()
-        self.sock.bind(('', self.ourPort))
-        debugLog("socket bound to: " + str(self.ourPort))
-
-        operateThread = threading.Thread(None, operate, operateThread)
-
-
     def operate(self):
         while True:
             newSessionConnection = self.sock.accept()
@@ -47,6 +23,30 @@ class FTAserver:
             reply = string.upper()
             debugLog("replying to " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]) + " with: " + reply)
             conn.send(reply)
+
+    def __init__(self, argv):
+        self.ourPort = 404
+        self.maxMessageSize = 1024
+
+        try:
+            opts, args = getopt.getopt(argv, "x:d")
+        except getopt.GetoptError:
+            usage()
+            sys.exit(2)
+
+        for opt, arg in opts:
+                if opt == '-x':
+                    self.ourPort = arg
+                elif opt == '-d':
+                    _debug = True
+                    debugLog("Maximum Verbosity!")
+
+        self.sock = EVIL.Evil()
+        self.sock.bind('', self.ourPort)
+        debugLog("socket bound to: " + str(self.ourPort))
+
+        operateThread = threading.Thread(None, self.operate)
+
 
     def window(self, W):
         self.sock.setMaxWindowSize(W)

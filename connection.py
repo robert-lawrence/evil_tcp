@@ -9,7 +9,7 @@
 ##              syn_recv (if it was created with socket.accept)
 ##              syn_sent (if it was created with socket.connect)
 
-import queue
+import Queue
 import threading
 from util import EVILPacket
 from util import debugLog
@@ -56,12 +56,12 @@ class Connection:
 
         ### Threading Queues:
 
-        self.dgram_queue_in = queue.Queue() # contains EVILPacket objs
+        self.dgram_queue_in = Queue.Queue() # contains EVILPacket objs
         # self.dgram_queue_out = queue.Queue() # contains EVILPacket objs
         self.dgram_unconf = []
         self.dgram_unsent = []
-        self.str_queue_in = queue.Queue()
-        self.str_queue_out = queue.Queue()
+        self.str_queue_in = Queue.Queue()
+        self.str_queue_out = Queue.Queue()
 
         self.queue_cond = threading.Condition()
         self.socket = socket
@@ -69,7 +69,7 @@ class Connection:
         self.establishedCondition = threading.Condition()
         self.resendTimer = 0
 
-    def setState(self, newState, timerReset=True)
+    def setState(self, newState, timerReset=True):
         self.stateCond.acquire()
         self.state = newState
         if timerReset:
@@ -93,7 +93,7 @@ class Connection:
     ##pauses until data is available, deletes data from the buffer once gotten
     def get(maxSize,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED and self.str_queue_out.empty():
-            throw Exception("Cannot read from non-established connection")
+            raise Exception("Cannot read from non-established connection")
         return self.str_queue_out.get(block,timeout)
 
 
@@ -101,7 +101,7 @@ class Connection:
     ##should add the data to the output buffer, then handle it when appropriate
     def send(data,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED:
-            throw Exception("Cannot write to non-established connection")
+            raise Exception("Cannot write to non-established connection")
         self.str_queue_in.put(data,block,timeout)
         self.queue_cond.acquire()
         self.queue_cond.notify()
