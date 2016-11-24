@@ -112,7 +112,7 @@ class Connection:
             raise Exception("Cannot write to non-established connection")
         dataChunks = []
         while len(data) != 0:
-            dataChunks.append(data[:MAX_SEND_BYTES]
+            dataChunks.append(data[:MAX_SEND_BYTES])
             data = data[MAX_SEND_BYTES:]
         for i in range(len(dataChunks)):
             self.str_queue_out.put(dataChunks[i],block,timeout)
@@ -222,7 +222,7 @@ class Connection:
             j = len(self.dgram_unconf)
             i = 0
             while i < j:
-                if self.dgram_unconf[i].ack < rcvd_ack:
+                if self.dgram_unconf[i].ack <= rcvd_ack:
                     self.dgram_unconf.pop(i)
                     i -= 1
                     j -= 1
