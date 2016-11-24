@@ -1,0 +1,1 @@
+THIS IS ALSO A TEST, it originates in server and is gotten to client
