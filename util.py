@@ -2,6 +2,7 @@ import random
 import sys
 import hashlib
 import time
+import threading
 
 _debug = True
 _showTime = True
@@ -14,7 +15,7 @@ class FLAG():
 def debugLog(log):
 
     if _debug:
-        print((time.asctime()+" " if _showTime else "") + log)
+        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.get_ident()) + log)
 
 
 class EVILPacket:
