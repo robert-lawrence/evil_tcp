@@ -6,7 +6,7 @@ import threading
 import struct
 
 _debug = True
-_showTime = True
+_showTime = False
 
 class FLAG():
     FIN = 1 << 15
@@ -16,7 +16,7 @@ class FLAG():
 def debugLog(log):
 
     if _debug:
-        print((time.asctime()+ " " if _showTime else "") + " Thread: " +  str(threading.current_thread().name) + " " + log)
+        print((str(time.clock()) + " " if _showTime else "") + " Thread: " +  str(threading.current_thread().name) + " " + log)
 
 
 class EVILPacket:
