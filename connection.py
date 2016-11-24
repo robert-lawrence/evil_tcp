@@ -214,9 +214,10 @@ class Connection:
                 debugLog("Resending ACK")
                 self.socket.addToOutput(self.otherAddress,new_dgram)
             dataLen = len(dgram.data)
-            if self.ack + dataLen != dgram.seq:
+            if self.ack + dataLen < dgram.seq:
                 #Out of order packet. Will be dropped.
-                # Re-acknowledge last received in-order packet
+                # Re-acknowledge last received in-order packet with RET set
+                new_dgram.setFlag(util.FLAG.RET,True)
                 self.socket.addToOutput(self.otherAddress,new_dgram)
                 debugLog("Received packet out-of-order. Re-ACKing last received packet")
                 return
@@ -236,6 +237,11 @@ class Connection:
                 new_dgram = self.new_dgram() #get new ack number
                 debugLog("ACKing received packet")
                 self.socket.addToOutput(self.otherAddress,new_dgram)
+            elif dgram.checkFlag(util.FLAG.RET):
+                debugLog("Got RET - resending!")
+                #need to resend unconfirmed packets.
+                #will fake resendTimer so that resend happens right away
+                self.resendTimer = time.time() - (self.DEFAULT_TIMEOUT + 1)
         self.stateCond.release()
 
     def checkTimeout(self):

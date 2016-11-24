@@ -118,11 +118,11 @@ class Evil:
 
     def addToOutput(self, address, packet):
         packet.checksum = packet.generateCheckSum()
-        if random.random() < 0.5:
-            debugLog("INTRODUCING ERROR INTO PACKET!!!")
+        #if random.random() < 0.02:
+            #debugLog("INTRODUCING ERROR INTO PACKET!!!")
             #packet = copy.deepcopy(packet)
             #packet.data += "~"
-            return
+            #return
         self.outgoingPackets.put((address, packet))
 
     def close(self):
