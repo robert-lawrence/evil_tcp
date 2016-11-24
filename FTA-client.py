@@ -5,7 +5,7 @@ import threading
 from util import debugLog
 import os.path
 
-MAXFILESIZE = 10240
+MAXFILESIZE = 1024000
 
 class FTAclient():
 
@@ -126,7 +126,7 @@ def test(argv):
     f.write("Hello, World!")
     f.close()
     '''
-    app.post("aeneid.txt")
+    app.get("aeneid.txt")
     ##os.rename("file.txt", "file2.txt")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
