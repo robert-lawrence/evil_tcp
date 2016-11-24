@@ -13,11 +13,7 @@ class FTAserver:
             debugLog("server accepting connections...")
             newSessionConnection = self.sock.accept()
             debugLog("accepted connection from " + newSessionConnection.otherAddress[0] + ":" + str(newSessionConnection.otherAddress[1]))
-<<<<<<< HEAD
-            sessionThread = threading.Thread(None, handleSession, "session_thread",  newSessionConnection)
-=======
             sessionThread = threading.Thread(None, self.handleSession, "session_thread", (newSessionConnection,))
->>>>>>> origin/master
             sessionThread.start()
 
     def handleSession(self, conn):
