@@ -51,7 +51,7 @@ class FTAserver():
                     debugLog("Session now get 2")
                     f = open(self.filename,'r')
                     fileLen = len(f.read())
-                    conn.send("got it: "+str(fileLen))
+                    conn.send("got it: " + str(fileLen))
                     f.close()
                 else:
                     self.sessionState == SESSIONSTATE.IDLE

@@ -35,7 +35,8 @@ class Evil:
             debugLog("received packet from: " + address[0] + ":" + str(address[1]))
             packet = util.EVILPacket()
             packet = packet.parseFromString(msg)
-            
+            packet.printSelf()
+
             if not packet.validateCheckSum():
                 debugLog("Invalid Checksum, tossing packet")
                 break

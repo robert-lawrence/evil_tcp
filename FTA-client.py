@@ -51,6 +51,7 @@ class FTAclient():
             if ans == "get":
                 self.connection.send(F)
                 debugLog("sent file request to server")
+                ans = self.connection.get(1024)
                 if ans[0:8] == "got it: ":
                     fileSize = int(ans[8:])
                     self.connection.send("send file")
@@ -118,6 +119,7 @@ def test(argv):
     app = main(argv)
     app.connect()
     print("APPCONNECTEDDDDDDDDDDDDDDDDDDDDDD")
+    '''
     if os.path.isfile("file.txt"):
         os.remove("file.txt")
     if os.path.isfile("file2.txt"):
@@ -125,11 +127,11 @@ def test(argv):
     f = open("file.txt", 'w')
     f.write("Hello, World!")
     f.close()
+    '''
     app.post("file.txt")
-    os.rename("file.txt", "file2.txt")
+    ##os.rename("file.txt", "file2.txt")
     app.get("file.txt")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
-    app.get("file.txt")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
     app.connection.close()
 
