@@ -31,8 +31,8 @@ class FTAclient:
                     debugLog("Maximum Verbosity!")
 
         self.sock = EVIL()
-        self.sock.bind(('', self.ourPort))
-        debugLog("socket bound to: " + str(self.ourPort))
+        self.sock.bind(('', 0)) ##tells os to bind to all hostnames on this machine with a chosen available port
+        debugLog("socket bound to: " + sock.getsockname()[0] + ":" + str(sock.getsockname()[1]))
 
 
 
