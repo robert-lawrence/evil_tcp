@@ -16,6 +16,8 @@ from util import debugLog
 import util
 import time
 
+MAX_SEND_BYTES = 1024
+
 class STATE():
     CLOSED = 1
     LISTEN = CLOSED << 1
@@ -108,7 +110,12 @@ class Connection:
     def send(self,data,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED:
             raise Exception("Cannot write to non-established connection")
-        self.str_queue_out.put(data,block,timeout)
+        dataChunks []
+        while len(data) != 0:
+            dataChunks.append(data[:MAX_SEND_BYTES]
+            data = data[MAX_SEND_BYTES:]
+        for i in range(len(dataChunks)):
+            self.str_queue_out.put(dataChunks[i],block,timeout)
         self.queue_cond.acquire()
         self.queue_cond.notify()
         self.queue_cond.release()
