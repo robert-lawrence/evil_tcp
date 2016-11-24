@@ -66,6 +66,8 @@ class Connection:
 
         self.establishedCondition = threading.Condition()
         self.resendTimer = 0
+        self.thread = threading.Thread(None, self.c_thread, "c_thread")
+        self.thread.start()
 
     def setState(self, newState, timerReset=True):
         self.stateCond.acquire()
@@ -82,9 +84,13 @@ class Connection:
     def handleIncoming(self,packet):
         try:
             self.dgram_queue_in.put(packet,timeout=0.5)
+            debugLog("added incoming packet to queue")
             self.queue_cond.acquire()
-            self.queue_cond.notify()
+            self.queue_cond.notifyAll()
+            debugLog("queue notification sent")
             self.queue_cond.release()
+            self.queue_cond.release()
+            debugLog("released twice")
         except Exception as e:
             pass
 
@@ -153,13 +159,13 @@ class Connection:
             if oldState == STATE.SYN_SENT:
                 if dgram.checkFlag(util.FLAG.SYN) and dgram.checkFlag(util.FLAG.ACK):
                     new_dgram.setFlag(util.FLAG.ACK,True)
-                    setState(STATE.ESTABLISHED)
+                    self.setState(STATE.ESTABLISHED)
                     self.stateCond.notifyAll()
                     self.socket.addToOutput(self.otherAddress,new_dgram)
                     debugLog("Sent ACK")
             if oldState == STATE.SYN_RECV:
                 if dgram.checkFlag(util.FLAG.ACK):
-                    setState(STATE.ESTABLISHED)
+                    self.setState(STATE.ESTABLISHED)
                     self.stateCond.notifyAll()
                     debugLog("Connection Established")
             if oldState == STATE.FIN_WAIT_1:
@@ -257,11 +263,14 @@ class Connection:
             cond = self.queue_cond
             cond.acquire()
             if self.dgram_queue_in.empty() and self.str_queue_out.empty():
+                debugLog("waiting")
                 cond.wait()
+                debugLog("wait interrupted")
             cond.release()
             while not self.dgram_queue_in.empty():
                 dgram = self.dgram_queue_in.get()
-                process_dgram(dgram)
+                debugLog("Got incoming packet from queue")
+                self.process_dgram(dgram)
             while len(self.dgram_unconf) < self.max_send_size and len(self.dgram_unsent) > 0:
                 dgram = self.dgram_unsent.pop(0)
                 dgram.ack = self.ack
@@ -271,6 +280,6 @@ class Connection:
             while not self.str_queue_out.empty():
                 held = len(self.dgram_unconf)
                 data = self.str_queue_out.get()
-                process_data_str(data)
-            if not check_connection():
+                self.process_data_str(data)
+            if self.state == STATE.CLOSED:
                 break

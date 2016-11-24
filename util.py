@@ -67,7 +67,6 @@ class EVILPacket:
         return struct.pack(self.structFormat, self.src_port, self.dst_port, self.seq, self.ack, self.flags, self.window, self.checksum) + str(self.data)
 
     def printSelf(self):
-        print(self.dst_port)
         debugLog( "Packet reads: " +
             "\n Source Port: " +  hex(self.src_port) +
             "\n Dest Port: " +    hex(self.dst_port) +
