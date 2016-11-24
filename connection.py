@@ -115,7 +115,16 @@ class Connection:
 
     ##send a FIN, set state appropriately
     def close(self):
-        pass
+        if self.state == STATE.CLOSED:
+            raise Exception("Cannot close an already-closed connection")
+        dgram = self.new_dgram()
+        dgram.setFlag(util.FLAG.FIN,True)
+        for _ in range(50):
+            self.socket.addToOutput(self.otherAddress,dgram)
+        self.stateCond.acquire()
+        self.state = STATE.CLOSED
+        self.stateCond.notifyAll()
+        self.stateCond.release()
 
 
     def new_dgram(self,seq=None,ack=None):
@@ -155,7 +164,10 @@ class Connection:
         oldState = self.state
         self.max_send_size = dgram.window
         new_dgram = self.new_dgram()
-        if oldState != STATE.ESTABLISHED:
+        if dgram.checkFlag(util.FLAG.FIN):
+            self.state = STATE.CLOSED
+            self.stateCond.notifyAll()
+        elif oldState != STATE.ESTABLISHED:
             if oldState == STATE.CLOSED:
                 pass
             if oldState == STATE.SYN_SENT:
@@ -281,7 +293,9 @@ class Connection:
                 self.dgram_unconf.append(dgram)
             while not self.str_queue_out.empty():
                 held = len(self.dgram_unconf)
+                debugLog("Got incoming data from queue")
                 data = self.str_queue_out.get()
                 self.process_data_str(data)
             if self.state == STATE.CLOSED:
                 break
+        #TODO: call socket fn to remove conn from list
