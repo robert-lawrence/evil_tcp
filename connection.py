@@ -278,9 +278,9 @@ class Connection:
             cond = self.queue_cond
             cond.acquire()
             if self.dgram_queue_in.empty() and self.str_queue_out.empty():
-                debugLog("waiting")
+                ##debugLog("waiting")
                 cond.wait(timeout=1)
-                debugLog("wait interrupted")
+                ##debugLog("wait interrupted")
             cond.release()
             while not self.dgram_queue_in.empty():
                 dgram = self.dgram_queue_in.get()

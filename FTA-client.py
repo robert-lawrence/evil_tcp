@@ -110,8 +110,10 @@ def test(argv):
     app = main(argv)
     app.connect()
     print("APPCONNECTEDDDDDDDDDDDDDDDDDDDDDD")
-    os.remove("file.txt")
-    os.remove("file2.txt")
+    if os.path.isfile("file.txt"):
+        os.remove("file.txt")
+    if os.path.isfile("file2.txt"):
+        os.remove("file2.txt")
     f = open("file.txt", 'w')
     f.write("Hello, World!")
     f.close()
