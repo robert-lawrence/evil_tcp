@@ -16,7 +16,7 @@ class Evil:
 
     def __init__(self):
 
-        self.connections = []
+        self.connections = {}
         self.connectionsLock = threading.Lock()
         self.unknownPackets = Queue.Queue()
 
@@ -97,7 +97,7 @@ class Evil:
 
         newConn = connection.Connection(self.sock.getsockname()[1], port, self.maxWindowSize,
         connection.STATE.SYN_SENT, host, self)
-        
+
         self.connections[(host, port)] = newConn
         self.connectionsLock.release()
         newConn.establishConnection()
