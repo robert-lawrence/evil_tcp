@@ -35,7 +35,7 @@ class Evil:
             packet = packet.parseFromString(msg)
             if address in connections:
                 self.connectionsLock.acquire()
-                self.connections[(address, CONN)].handleIncoming(packet)
+                self.connections[address].handleIncoming(packet)
                 self.connectionsLock.release()
             else:
                 if packet.checkFlag(FLAGS.SYN):
@@ -73,7 +73,7 @@ class Evil:
         newConn = Connection(self.port, unknownPacket[0], self.maxWindowSize,
         connection.STATE.SYN_RECV, unknownPacket[1], self)
 
-        self.connections[((unknownPacket[0], unknownPacket[1]), CONN)] = newConn
+        self.connections[(unknownPacket[0], unknownPacket[1])] = newConn
         self.connectionsLock.release()
 
         newConn.establishConnection()
@@ -95,10 +95,10 @@ class Evil:
         """
         self.connectionsLock.acquire()
 
-        newConn = Connection(self.port, port, self.maxWindowSize,
+        newConn = connection.Connection(self.sock.getsockname()[1], port, self.maxWindowSize,
         connection.STATE.SYN_SENT, host, self)
         
-        self.connections[((host, port), CONN)] = newConn
+        self.connections[(host, port)] = newConn
         self.connectionsLock.release()
         newConn.establishConnection()
         debugLog("new connection created with: " + host + " on port " + str(port))
