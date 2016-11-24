@@ -110,7 +110,7 @@ class Connection:
     def send(self,data,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED:
             raise Exception("Cannot write to non-established connection")
-        dataChunks []
+        dataChunks = []
         while len(data) != 0:
             dataChunks.append(data[:MAX_SEND_BYTES]
             data = data[MAX_SEND_BYTES:]
