@@ -156,7 +156,7 @@ class Connection:
                     setState(STATE.ESTABLISHED)
                     self.stateCond.notifyAll()
                     self.socket.addToOutput(self.otherAddress,new_dgram)
-                    debugLog("Sent SYN+ACK")
+                    debugLog("Sent ACK")
             if oldState == STATE.SYN_RECV:
                 if dgram.checkFlag(util.FLAG.ACK):
                     setState(STATE.ESTABLISHED)

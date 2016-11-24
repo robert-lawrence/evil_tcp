@@ -55,14 +55,14 @@ class Evil:
             debugLog("Recip: " + str(recipient)+'\n')
             packet.printSelf()
             self.sock.sendto(packet.toString(), recipient)
-            debugLog("sent: " + packet.toString())
+            debugLog("sent: " + hex(packet.checksum))
 
 
     def bind(self, host, port):
         self.sock.bind((host, port))
-        listenerThread = threading.Thread(None, self.listener)
+        listenerThread = threading.Thread(None, self.listener, "listener_thread")
         listenerThread.start()
-        speakerThread = threading.Thread(None, self.speaker)
+        speakerThread = threading.Thread(None, self.speaker, "speaker_thread")
         speakerThread.start()
 
     def accept(self):
@@ -81,7 +81,7 @@ class Evil:
         newConn = connection.Connection(self.sock.getsockname()[1], unknownPacket[1][1], self.maxWindowSize,
         connection.STATE.SYN_RECV, unknownPacket[1][0], self)
 
-        self.connections[(unknownPacket[0], unknownPacket[1])] = newConn
+        self.connections[(unknownPacket[1][0], unknownPacket[1][1])] = newConn
         self.connectionsLock.release()
 
         newConn.establishConnection()
