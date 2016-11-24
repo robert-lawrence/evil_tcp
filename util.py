@@ -3,6 +3,7 @@ import sys
 import hashlib
 import time
 import threading
+import struct
 
 _debug = True
 _showTime = True
@@ -38,7 +39,7 @@ class EVILPacket:
      |                             data                              |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   '''
-
+  structFormat = 'HHIIHHI'
   def __init__(self):
         self.src_port = 0
         self.dst_port = 0
@@ -50,71 +51,20 @@ class EVILPacket:
         self.data = ""
 
   def parseFromString(self, string):
-        current = 0
-        size = 2
-
-        size = 2
-        self.src_port = getFromBytes(current, size, string)
-        current += size
-
-        self.dst_port = getFromBytes(current, size, string)
-        current += size
-
-        size = 4
-        self.seq = getFromBytes(current, size, string)
-        current += size
-
-
-        self.ack = getFromBytes(current, size, string)
-        current += size
-
-        size = 2
-        self.flags = getFromBytes(current, size, string)
-        current += size
-
-        self.window = getFromBytes(current, size, string)
-        current += size
-
-        size = 4
-        self.checksum = getFromBytes(current, size, string)
-        current += size
-
-        self.data = ""
-        for i in range(current, len(string) + 32 - 69):
-            self.data += chr(getFromBytes(i, 1, string))
-
+        size = struct.calcsize(self.structFormat)
+        temp = struct.unpack(self.structFormat, string[:size])
+        self.src_port = temp[0]
+        self.dst_port = temp[1]
+        self.seq = temp[2]
+        self.ack = temp[3]
+        self.flags = temp[4]
+        self.window = temp[5]
+        self.checksum = temp[6]
+        self.data = string[size:]
         return self
 
   def toString(self):
-        current = 0
-        temp = bytearray(20 + sys.getsizeof(self.data))
-        size = 2
-        temp = setInBytes(current, size, temp, self.src_port)
-        current += size
-
-        temp = setInBytes(current, size, temp, self.dst_port)
-        current += size
-
-        size = 4
-        temp = setInBytes(current, size, temp, self.seq)
-        current += size
-
-        temp = setInBytes(current, size, temp, self.ack)
-        current += size
-
-        size = 2
-        temp = setInBytes(current, size, temp, self.flags)
-        current += size
-
-        temp = setInBytes(current, size, temp, self.window)
-        current += size
-
-        size = 4
-        temp = setInBytes(current, size, temp, self.checksum)
-        current += size
-
-        temp = setInBytes(current, len(self.data), temp, self.data)
-        return temp
+        return struct.pack(self.structFormat, self.src_port, self.dst_port, self.seq, self.ack, self.flags, self.window, self.checksum) + str(self.data)
 
   def printSelf(self):
       debugLog( "Package reads: " +
@@ -189,4 +139,3 @@ def test():
     newNewPack = newNewPack.parseFromString(newPackString)
     newNewPack.printSelf()
     debugLog(hex(newNewPack.generateCheckSum()))
-test()
