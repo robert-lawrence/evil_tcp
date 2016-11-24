@@ -30,46 +30,46 @@ class FTAserver():
         self.sessionState = SESSIONSTATE.IDLE
         self.filename = ""
         while True:
-            string = conn.get(maxMessageSize)
-            debugLog("received " + string.data + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
+            string = conn.get(1024)
+            debugLog("received " + string + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
 
             if self.sessionState == SESSIONSTATE.IDLE:
-                if string.data == "get":
+                if string == "get":
                     self.sessionState = SESSIONSTATE.GET_1
                     debugLog("Session now get 1")
-                    self.connection.send("get")
-                elif string.data == "post":
+                    conn.send("get")
+                elif string == "post":
                     self.sessionState == SESSIONSTATE.POST_1
                     debugLog("Session now post 1")
-                    self.connection.send("post")
-            elif self.sessionState == SESSIONSTATE.GET_1
-                self.filename = string.data
+                    conn.send("post")
+            elif self.sessionState == SESSIONSTATE.GET_1:
+                self.filename = string
                 if os.path.isfile(filename):
                     self.sessionState == SESSIONSTATE.GET_2
                     debugLog("Session now get 2")
-                    self.connection.send("got it")
+                    conn.send("got it")
                 else:
                     self.sessionState == SESSIONSTATE.IDLE
                     debugLog("Session now idle")
-                    self.connection.send("back to idle")
-            elif self.sessionState == SESSIONSTATE.GET_2
-                if string.data == "send file":
+                    conn.send("back to idle")
+            elif self.sessionState == SESSIONSTATE.GET_2:
+                if string == "send file":
                     f = open(filename, 'r')
-                    self.connection.send(f.read())
+                    conn.send(f.read())
                     f.close()
-                    self.connection.send("back to idle")
+                    conn.send("back to idle")
                 else:
                     self.sessionState == SESSIONSTATE.IDLE
                     debugLog("Session now idle")
-                    self.connection.send("back to idle")
-            elif self.sessionState == SESSIONSTATE.POST_1
-                self.filename = string.data
+                    conn.send("back to idle")
+            elif self.sessionState == SESSIONSTATE.POST_1:
+                self.filename = string
                 self.sessionState == SESSIONSTATE.POST_2
                 debugLog("Session now post 2")
-                self.connection.send("send file")
-            elif self.sessionState == SESSIONSTATE.POST_2
+                conn.send("send file")
+            elif self.sessionState == SESSIONSTATE.POST_2:
                     f = open(filename, 'w')
-                    f.write(data.string)
+                    f.write(string)
                     f.close()
                     debugLog("Post Complete")
                     self.sessionState = SESSIONSTATE.IDLE
