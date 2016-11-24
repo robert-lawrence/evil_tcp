@@ -61,7 +61,11 @@ def main(argv):
 def test(argv):
     app = main(argv)
     app.connect()
-    app.get("Hello, World")
+    print("APPCONNECTEDDDDDDDDDDDDDDDDDDDDDD")
+    app.connection.send("Hello, World!")
+    print("APPSENNNNNNNNNNNNNNNNNNTTTTTTTTTT")
+    print(str(app.connection.get(1024)))
+    print("APPRECVVVVVVVVVVVVVVDDDDDDDDDDDDD")
 
 test(sys.argv[1:])
 ##main(sys.argv)

@@ -100,7 +100,7 @@ class Connection:
     def get(self,maxSize,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED and self.str_queue_out.empty():
             raise Exception("Cannot read from non-established connection")
-        return self.str_queue_out.get(block,timeout)
+        return self.str_queue_in.get(block,timeout)
 
 
     ##called by the application when it wants to send data to the connection
@@ -108,7 +108,7 @@ class Connection:
     def send(self,data,block=True,timeout=None):
         if self.state != STATE.ESTABLISHED:
             raise Exception("Cannot write to non-established connection")
-        self.str_queue_in.put(data,block,timeout)
+        self.str_queue_out.put(data,block,timeout)
         self.queue_cond.acquire()
         self.queue_cond.notify()
         self.queue_cond.release()
@@ -138,13 +138,15 @@ class Connection:
         dgram.data = data
         dgram.seq = self.seq + len(data)
         dgram.window = self.currentWindowSize
-        dgram.checksum = drgram.generateCheckSum()
+        dgram.checksum = dgram.generateCheckSum()
 
         self.seq += len(data) #TODO  may change
 
         if len(self.dgram_unconf) >= self.max_send_size:
+            debugLog("queue full; deferring packet")
             self.dgram_unsent.append(dgram)
         else:
+            debugLog("appended packet to queue")
             self.dgram_unconf.append(dgram)
             self.socket.addToOutput(self.otherAddress,dgram)
 
@@ -264,7 +266,7 @@ class Connection:
             cond.acquire()
             if self.dgram_queue_in.empty() and self.str_queue_out.empty():
                 debugLog("waiting")
-                cond.wait()
+                cond.wait(timeout=1)
                 debugLog("wait interrupted")
             cond.release()
             while not self.dgram_queue_in.empty():
