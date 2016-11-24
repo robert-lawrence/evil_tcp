@@ -87,7 +87,7 @@ class FTAclient():
                 if ans == "send file":
                     debugLog("server ready to receive")
                     f = open(F, 'r')
-                    self.connection.send(f.read(MAXFILESIZE))
+                    self.connection.send(f.read())
                     debugLog("sent file post to server")
                     f.close()
                     debugLog("File Transfer Complete")
@@ -126,7 +126,7 @@ def test(argv):
     f.write("Hello, World!")
     f.close()
     '''
-    app.get("aeneid.txt")
+    app.get("killstreak.png")
     ##os.rename("file.txt", "file2.txt")
     print("APPPOOOOOSSSSSSSSSSSSSSSSSSSSSST")
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
