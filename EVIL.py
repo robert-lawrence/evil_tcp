@@ -53,6 +53,7 @@ class Evil:
             recipient, packet = self.outgoingPackets.get()
             debugLog("pack checksum: " + hex(packet.checksum)+'\n')
             debugLog("Recip: " + str(recipient)+'\n')
+            packet.printSelf()
             self.sock.sendto(packet.toString(), recipient)
             debugLog("sent: " + packet.toString())
 
@@ -77,8 +78,8 @@ class Evil:
         debugLog("got unknown packet for accept call")
         self.connectionsLock.acquire()
 
-        newConn = connection.Connection(self.sock.getsockname()[1], unknownPacket[0], self.maxWindowSize,
-        connection.STATE.SYN_RECV, unknownPacket[1], self)
+        newConn = connection.Connection(self.sock.getsockname()[1], unknownPacket[1][1], self.maxWindowSize,
+        connection.STATE.SYN_RECV, unknownPacket[1][0], self)
 
         self.connections[(unknownPacket[0], unknownPacket[1])] = newConn
         self.connectionsLock.release()

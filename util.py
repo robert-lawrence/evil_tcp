@@ -20,7 +20,7 @@ def debugLog(log):
 
 
 class EVILPacket:
-  '''
+    '''
         0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -38,7 +38,7 @@ class EVILPacket:
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      |                             data                              |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  '''
+    '''
     structFormat = '!HHIIHHI'
     def __init__(self):
         self.src_port = 0
@@ -67,6 +67,7 @@ class EVILPacket:
         return struct.pack(self.structFormat, self.src_port, self.dst_port, self.seq, self.ack, self.flags, self.window, self.checksum) + str(self.data)
 
     def printSelf(self):
+        print(self.dst_port)
         debugLog( "Packet reads: " +
             "\n Source Port: " +  hex(self.src_port) +
             "\n Dest Port: " +    hex(self.dst_port) +
