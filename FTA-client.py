@@ -16,8 +16,8 @@ class FTAclient:
         global _debug
 
         try:
-            opts, args = getopt.getop(argv, "a:p:d")
-        except getopt.GetopError:
+            opts, args = getopt.getopt(argv, "a:p:d")
+        except getopt.GetoptError:
             usage()
             sys.exit(2)
 
@@ -30,7 +30,7 @@ class FTAclient:
                     _debug = True
                     debugLog("Maximum Verbosity!")
 
-        self.sock = EVIL()
+        self.sock = EVIL.Evil()
         self.sock.bind(('', 0)) ##tells os to bind to all hostnames on this machine with a chosen available port
         debugLog("socket bound to: " + sock.getsockname()[0] + ":" + str(sock.getsockname()[1]))
 
