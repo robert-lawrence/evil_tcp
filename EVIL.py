@@ -51,8 +51,8 @@ class Evil:
 
         while True:
             recipient, packet = self.outgoingPackets.get()
-            debugLog(hex(packet.checksum)+'\n')
-            debugLog(str(recipient)+'\n')
+            debugLog("pack checksum: " + hex(packet.checksum)+'\n')
+            debugLog("Recip: " + str(recipient)+'\n')
             self.sock.sendto(packet.toString(), recipient)
             debugLog("sent: " + packet.toString())
 
@@ -73,11 +73,11 @@ class Evil:
         Return: a Connection instance
         Errors: if socket closed, throw exception
         """
-        unknownPacket = unknownPackets.get()
+        unknownPacket = self.unknownPackets.get()
         debugLog("got unknown packet for accept call")
         self.connectionsLock.acquire()
 
-        newConn = Connection(self.port, unknownPacket[0], self.maxWindowSize,
+        newConn = connection.Connection(self.sock.getsockname()[1], unknownPacket[0], self.maxWindowSize,
         connection.STATE.SYN_RECV, unknownPacket[1], self)
 
         self.connections[(unknownPacket[0], unknownPacket[1])] = newConn
@@ -112,6 +112,7 @@ class Evil:
         return newConn
 
     def addToOutput(self, address, packet):
+        packet.checksum = packet.generateCheckSum()
         self.outgoingPackets.put((address, packet))
 
     def close(self):

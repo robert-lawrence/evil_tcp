@@ -39,8 +39,8 @@ class EVILPacket:
      |                             data                              |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
   '''
-  structFormat = 'HHIIHHI'
-  def __init__(self):
+    structFormat = '!HHIIHHI'
+    def __init__(self):
         self.src_port = 0
         self.dst_port = 0
         self.seq = 0
@@ -50,7 +50,7 @@ class EVILPacket:
         self.checksum = 0
         self.data = ""
 
-  def parseFromString(self, string):
+    def parseFromString(self, string):
         size = struct.calcsize(self.structFormat)
         temp = struct.unpack(self.structFormat, string[:size])
         self.src_port = temp[0]
@@ -63,11 +63,11 @@ class EVILPacket:
         self.data = string[size:]
         return self
 
-  def toString(self):
+    def toString(self):
         return struct.pack(self.structFormat, self.src_port, self.dst_port, self.seq, self.ack, self.flags, self.window, self.checksum) + str(self.data)
 
-  def printSelf(self):
-      debugLog( "Package reads: " +
+    def printSelf(self):
+        debugLog( "Packet reads: " +
             "\n Source Port: " +  hex(self.src_port) +
             "\n Dest Port: " +    hex(self.dst_port) +
             "\n Seq: " +          hex(self.seq) +
@@ -78,7 +78,7 @@ class EVILPacket:
             "\n Data: " +         str(self.data)
               )
 
-  def generateCheckSum(self):
+    def generateCheckSum(self):
         checksum = hashlib.md5()
         checksum.update(str(self.src_port))
         checksum.update(str(self.dst_port))
@@ -89,14 +89,14 @@ class EVILPacket:
         checksum.update(self.data)
         return int(checksum.hexdigest(), 16) & 0xFFFFFFFF
 
-  def validateCheckSum(self):
+    def validateCheckSum(self):
         currentCheckSum = self.generateCheckSum()
         return (currentCheckSum == self.checksum)
 
-  def checkFlag(self, flag):
+    def checkFlag(self, flag):
         return (self.flags & flag) > 0
 
-  def setFlag(self, flag, tf=True):
+    def setFlag(self, flag, tf=True):
         if tf:
             self.flags = self.flags | flag
         else:
@@ -116,7 +116,6 @@ def setInBytes(pos, size, string, value):
         else:
             string[pos + size - offset - 1] = (value >> (offset * 8)) & 0xFF
     return string
-
 def test():
     pack = EVILPacket()
     pack.data = "sbutt"

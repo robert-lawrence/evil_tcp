@@ -10,6 +10,7 @@ class FTAserver:
 
     def operate(self):
         while True:
+            debugLog("server accepting connections...")
             newSessionConnection = self.sock.accept()
             debugLog("accepted connection from " + newSessionConnection.otherAddress[0] + ":" + str(newSessionConnection.otherAddress[1]))
             sessionThread = threading.Thread(None, handleSession, newSessionConnection)
@@ -46,7 +47,7 @@ class FTAserver:
         debugLog("socket bound to: " + self.sock.sock.getsockname()[0] + ":" + str(self.ourPort))
 
         operateThread = threading.Thread(None, self.operate)
-
+        operateThread.start()
 
     def window(self, W):
         self.sock.setMaxWindowSize(W)
