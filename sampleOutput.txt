@@ -6,14 +6,13 @@ Sample Output
 
 Here is an example of the output you can expect when running our code:
 
-
+(Cmd) is the command prompt, which is written on each line
 
 
 FTA-server.py:
 -------------
 
-$ cd server
-$ python ../FTA-server.py
+$ python FTA-server.py
 (Cmd) window 4
 Window size set to 4
 
@@ -25,8 +24,7 @@ $
 FTA-client.py
 -------------
 
-$ cd client
-$ python ../FTA-client.py 172.17.0.3 4000
+$ python FTA-client.py 172.17.0.3 4000
 (Cmd) connect
 (Cmd) get file1.txt
 File Transfer Complete

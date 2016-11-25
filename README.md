@@ -35,7 +35,7 @@ _______          _________ _
 
  * FTA-server - an example application using the EVIL protocol to do file transfer, server application
 
-
+ * sampleOutput.txt - an example run of the program 
 
 
 ## Build and Run Instructions:
@@ -43,11 +43,11 @@ First, in one docker container determine the ip using ifconfig, remember this fo
 
 now run the server using the python 2.x version, type the following into the terminal
 
-    python FTA-server.py -x  5005 -d
+    python FTA-server.py  5005 
 
 next, in a second docker window, run
 
-    python FTA-client.py -a (serverIP) -p 5005 -d
+    python FTA-client.py (serverIP) 5005
 *instead of (serverIP), type the ip found in part one using ifconfig*
 
 note: port 5005 (or whatever your chosn port) must be available on the server container or EVIL will not be able to bind, so ensure that it is available.
