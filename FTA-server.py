@@ -4,6 +4,9 @@ import EVIL
 import threading
 from util import debugLog
 import os.path
+import cmd
+import readline
+import connection
 
 global _debug
 
@@ -15,12 +18,39 @@ class SESSIONSTATE():
     POST_2 = 6
     POST_3 = 7
 
+class ServerCmd(cmd.Cmd):
+    def init(self, port):
+        self.client = None
+        self.port = port
+        self.promt = "EVIL: "
+        self.server = FTAserver(port) #TODO: change server init
+
+    def do_window(self,W):
+        try:
+            wsize = int(W)
+        except Exception as e:
+            print("Error: window size must be an int!")
+        self.server.window(W)
+
+    def do_terminate(self,line):
+        self.server.terminate()
+
+    def emptyline(self):
+        pass
+
+
 class FTAserver():
 
     def operate(self):
         while True:
-            debugLog("server accepting connections...")
-            newSessionConnection = self.sock.accept()
+            if self.sock.isClosed:
+                break
+            try:
+                newSessionConnection = self.sock.accept(timeout=5)
+            except Exception as e:
+                continue
+            if self.sock.isClosed:
+                break
             debugLog("accepted connection from " + newSessionConnection.otherAddress[0] + ":" + str(newSessionConnection.otherAddress[1]))
             sessionThread = threading.Thread(None, self.handleSession, "session_thread", (newSessionConnection,))
             sessionThread.start()
@@ -31,7 +61,12 @@ class FTAserver():
         filename = ""
         fileSize = 0
         while True:
-            string = conn.get(1024)
+            if conn.state == connection.STATE.CLOSED:
+                break
+            try:
+                string = conn.get(1024,timeout=5)
+            except Exception as e:
+                continue
             debugLog("received " + string + " from " + conn.otherAddress[0] + ":" + str(conn.otherAddress[1]))
 
             if sessionState == SESSIONSTATE.IDLE:
@@ -62,7 +97,8 @@ class FTAserver():
                     f = open(filename, 'r')
                     conn.send(f.read())
                     f.close()
-                    conn.send("back to idle")
+                    # conn.send("back to idle")
+                    sessionState = SESSIONSTATE.IDLE
                 else:
                     sessionState == SESSIONSTATE.IDLE
                     debugLog("Session now idle")
@@ -83,21 +119,9 @@ class FTAserver():
                     debugLog("Session now idle")
 
 
-    def __init__(self, argv):
-        self.ourPort = 404
+    def __init__(self, port):
+        self.ourPort = port
         self.maxMessageSize = 1024
-
-        try:
-            opts, args = getopt.getopt(argv, "x:d")
-        except getopt.GetoptError:
-            usage()
-            sys.exit(2)
-
-        for opt, arg in opts:
-                if opt == '-x':
-                    self.ourPort = int(arg)
-                elif opt == '-d':
-                    debugLog("Maximum Verbosity!")
 
         self.sock = EVIL.Evil()
         self.sock.bind('', self.ourPort)
@@ -115,10 +139,18 @@ class FTAserver():
         sys.exit()
 
 def main(argv):
-    return FTAserver(argv)
+    try:
+        port = int(argv[1])
+    except Exception as e:
+        print("Error parsing Args.\n Syntax: \"FTA-server port\"")
+        return
+    parser = ServerCmd()
+    parser.init(port)
+    parser.cmdloop()
+    #return FTAserver(argv)
 
 def test(argv):
     app = main(argv)
 
-test(sys.argv[1:])
-##main(sys.argv)
+#test(sys.argv[1:])
+main(sys.argv)

@@ -4,30 +4,54 @@ import EVIL
 import threading
 from util import debugLog
 import os.path
+import cmd
+import readline
 
 MAXFILESIZE = 1024000
 
+class ClientCmd(cmd.Cmd):
+    def init(self, address, port):
+        self.client = None
+        self.address = address
+        self.port = port
+        self.promt = "EVIL: "
+        self.client = FTAclient(address,port) #TODO change server init
+
+    def do_window(self,W):
+        try:
+            wsize = int(W)
+        except Exception as e:
+            print("Error: window size must be an int!")
+        self.client.window(W)
+
+    def do_connect(self,line):
+        self.client.connect()
+
+    def do_get(self,line):
+        self.client.get(line)
+    
+    def do_post(self,line):
+        self.client.post(line)
+
+    def do_disconnect(self,line):
+        self.client.terminate()
+        return True
+
+    def emptyline(self):
+        pass
+
+    def do_EOF(self,line):
+        self.client.terminate()
+        return True
+
+
 class FTAclient():
 
-    def __init__(self, argv):
-        self.serverAddress = "127.0.0.1"
-        self.serverPort = 1337
+    def __init__(self, address, port):
+        self.serverAddress = address
+        self.serverPort = port
         self.maxMessageSize = 1024
         self.connected = False
-
-        try:
-            opts, args = getopt.getopt(argv, "a:p:d")
-        except getopt.GetoptError:
-            usage()
-            sys.exit(2)
-
-        for opt, arg in opts:
-                if opt == '-a':
-                    self.serverAddress = str(arg)
-                elif opt == '-p':
-                    self.serverPort = int(arg)
-                elif opt == '-d':
-                    debugLog("Maximum Verbosity!")
 
         self.sock = EVIL.Evil()
         self.sock.bind('', 0) ##tells os to bind to all hostnames on this machine with a chosen available port
@@ -96,7 +120,7 @@ class FTAclient():
                     debugLog("server did not correctly acknowledge for receipt of file")
                     return False
             else:
-                debugLog("server did not respond with 'readypost' to 'post' request")
+                debugLog("server did not respond with 'post' to 'post' request")
                 return False
         else:
             raise UnboundLocalError('Client has no connection to a server, cannot fetch')
@@ -111,7 +135,16 @@ class FTAclient():
 
 
 def main(argv):
-    return FTAclient(argv)
+    try:
+        address = argv[1]
+        port = int(argv[2])
+    except Exception as e:
+        print("Error parsing Args.\n Syntax: \"FTA-client address port\"")
+        return
+    parser = ClientCmd()
+    parser.init(address,port)
+    parser.cmdloop()
+    #return FTAclient(argv)
 
 def test(argv):
     app = main(argv)
@@ -132,5 +165,5 @@ def test(argv):
     print("APPGGEEEEEEEEEEEEEETTTTTTTTTTTT")
     ##app.terminate()
 
-test(sys.argv[1:])
-##main(sys.argv)
+#test(sys.argv[1:])
+main(sys.argv)
