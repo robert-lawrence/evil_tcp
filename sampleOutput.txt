@@ -12,7 +12,7 @@ Here is an example of the output you can expect when running our code:
 FTA-server.py:
 -------------
 
-$ python FTA-server.py
+$ python FTA-server.py 4000
 (Cmd) window 4
 Window size set to 4
 
