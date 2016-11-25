@@ -15,7 +15,7 @@ _______          _________ _
 
 ## Team:
     John Blum : jblum@gatech.edu
-    Robert Smith : rsmith@gatech.edu
+    Robert Smith : rsmith391@gatech.edu
 
 
 
