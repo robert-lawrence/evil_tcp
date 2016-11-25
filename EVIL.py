@@ -12,6 +12,7 @@ import util
 from util import debugLog
 import random
 import copy
+import select
 
 class Evil:
     BUFSIZE = 1000
@@ -27,13 +28,22 @@ class Evil:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         self.maxWindowSize = 3
+        self.isClosed = False
 
     def listener(self):
         debugLog("listenerThread started on port " + str(self.sock.getsockname()[1]))
 
         while True:
             debugLog("receiving")
-            msg, address = self.sock.recvfrom(1024)
+            ready = select.select([self.sock], [], [], 5)
+            if self.isClosed:
+                break
+            if (ready[0]):
+                msg, address = self.sock.recvfrom(1024)
+            else:
+                continue
+            if self.isClosed:
+                break
             debugLog("received packet from: " + address[0] + ":" + str(address[1]))
             packet = util.EVILPacket()
             packet = packet.parseFromString(msg)
@@ -58,7 +68,14 @@ class Evil:
         debugLog("speakerThread started on port " + str(self.sock.getsockname()[1]))
 
         while True:
-            recipient, packet = self.outgoingPackets.get()
+            if self.isClosed:
+                break
+            try:
+                recipient, packet = self.outgoingPackets.get(timeout=5)
+            except Exception as e:
+                continue
+            if self.isClosed:
+                break
             debugLog("pack checksum: " + hex(packet.checksum)+'\n')
             debugLog("Recip: " + str(recipient)+'\n')
             packet.printSelf()
@@ -73,7 +90,7 @@ class Evil:
         speakerThread = threading.Thread(None, self.speaker, "speaker_thread")
         speakerThread.start()
 
-    def accept(self):
+    def accept(self,block=True,timeout=None):
         """
         called by client code - Socket and connection threads should not touch!
         blocks until a new connection is received and a Connection object has
@@ -82,7 +99,7 @@ class Evil:
         Return: a Connection instance
         Errors: if socket closed, throw exception
         """
-        unknownPacket = self.unknownPackets.get()
+        unknownPacket = self.unknownPackets.get(block,timeout)
         debugLog("got unknown packet for accept call")
         self.connectionsLock.acquire()
 
@@ -126,13 +143,17 @@ class Evil:
         self.outgoingPackets.put((address, packet))
 
     def close(self):
+        self.isClosed = True
         for c in self.connections:
-            self.connections[c].close()
+            try:
+                self.connections[c].close()
+            except Exception as e:
+                pass
             debugLog("connection closed")
-        self.socket.close()
+        self.sock.close()
         debugLog("socket closed")
 
     def setMaxWindowSize(self, W):
         self.maxWindowSize = W
         for connection in self.connections:
-            connection.setMaxWindowSize(W)
+            self.connections[connection].setMaxWindowSize(W)

@@ -1,0 +1,39 @@
+
+
+
+Sample Output
+-------------
+
+Here is an example of the output you can expect when running our code:
+
+
+
+
+FTA-server.py:
+-------------
+
+$ cd server
+$ python ../FTA-server.py
+(Cmd) window 4
+Window size set to 4
+
+(Cmd) terminate
+$
+
+(server does not write text to screen when files are transferred)
+
+FTA-client.py
+-------------
+
+$ cd client
+$ python ../FTA-client.py 172.17.0.3 4000
+(Cmd) connect
+(Cmd) get file1.txt
+File Transfer Complete
+
+(Cmd) post file.txt
+File Transfer Complete
+
+(Cmd) disconnect
+
+$
