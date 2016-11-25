@@ -23,6 +23,7 @@ class ClientCmd(cmd.Cmd):
         except Exception as e:
             print("Error: window size must be an int!")
         self.client.window(W)
+        print("Window size set to "+str(W)+"\n")
 
     def do_connect(self,line):
         self.client.connect()
@@ -35,6 +36,7 @@ class ClientCmd(cmd.Cmd):
 
     def do_disconnect(self,line):
         self.client.terminate()
+        print("Server Terminated\n")
         return True
 
     def emptyline(self):
@@ -82,17 +84,18 @@ class FTAclient():
                     # could debug, make sure len is exactly right
                     f.write(fileData)
                     f.close()
-                    debugLog("File Transfer Complete")
+                    print("File Transfer Complete")
                     return True
                 else:
-                    debugLog("server did not acknowledge filename, may not be on server")
+                    print("server did not acknowledge filename, may not be on server")
                     return False
 
             else:
                 debugLog("server did not respond with 'get' to get request, may be in the wrong state")
+                print("Error fetching file")
                 return False
         else:
-            raise UnboundLocalError('Client has no connection to a server, cannot fetch')
+            print('Client has no connection to a server, cannot fetch')
 
     def post(self, F):
         if not os.path.isfile(F):
@@ -114,16 +117,17 @@ class FTAclient():
                     self.connection.send(f.read())
                     debugLog("sent file post to server")
                     f.close()
-                    debugLog("File Transfer Complete")
+                    print("File Transfer Complete")
                     return True
                 else:
-                    debugLog("server did not correctly acknowledge for receipt of file")
+                    print("server did not correctly acknowledge for receipt of file\n")
                     return False
             else:
                 debugLog("server did not respond with 'post' to 'post' request")
+                print("Error sending file\n")
                 return False
         else:
-            raise UnboundLocalError('Client has no connection to a server, cannot fetch')
+            print('Client has no connection to a server, cannot fetch\n')
 
     def window(self, W):
         self.sock.setMaxWindowSize(W)

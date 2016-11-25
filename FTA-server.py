@@ -31,9 +31,11 @@ class ServerCmd(cmd.Cmd):
         except Exception as e:
             print("Error: window size must be an int!")
         self.server.window(W)
+        print("Window size set to "+str(W)+"\n")
 
     def do_terminate(self,line):
         self.server.terminate()
+        print("Server Terminated\n")
 
     def emptyline(self):
         pass

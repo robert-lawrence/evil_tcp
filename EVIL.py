@@ -156,4 +156,4 @@ class Evil:
     def setMaxWindowSize(self, W):
         self.maxWindowSize = W
         for connection in self.connections:
-            connection.setMaxWindowSize(W)
+            self.connections[connection].setMaxWindowSize(W)

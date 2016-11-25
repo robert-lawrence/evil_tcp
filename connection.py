@@ -206,7 +206,6 @@ class Connection:
                 pass
             if oldState == STATE.LAST_ACK:
                 pass
-            #TODO !!!
             pass
         else:
             if dgram.checkFlag(util.FLAG.SYN) and dgram.checkFlag(util.FLAG.ACK):
