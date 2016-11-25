@@ -50,6 +50,7 @@ class Connection:
         ##constructor, needs max window size for requirements and state for bidir
         ##should also initialize buffers etc
         self.currentWindowSize = 1
+        self.missedKeeps = 0
 
         self.seq = 0
         self.ack = 0
@@ -208,6 +209,13 @@ class Connection:
                 pass
             pass
         else:
+            if dgram.checkFlag(util.FLAG.KEP):
+                if dgram.checkFlag(util.FLAG.ACK):
+                    self.missedKeeps = 0
+                else:
+                    new_dgram.setFlag(util.FLAG.ACK,True)
+                    new_dgram.setFlag(util.FLAG.KEP,True)
+                    self.socket.addToOutput(self.otherAddress,new_dgram)
             if dgram.checkFlag(util.FLAG.SYN) and dgram.checkFlag(util.FLAG.ACK):
                 new_dgram.setFlag(util.FLAG.ACK,True)
                 debugLog("Resending ACK")
@@ -220,6 +228,8 @@ class Connection:
                 self.socket.addToOutput(self.otherAddress,new_dgram)
                 debugLog("Received packet out-of-order. Re-ACKing last received packet")
                 return
+            elif self.ack + dataLen == dgram.seq and dataLen != 0:
+                self.resendTimer = time.time()
 
             self.ack += len(dgram.data) #TODO: need to change to fit data type
             rcvd_ack = dgram.ack
@@ -228,6 +238,7 @@ class Connection:
             while i < j:
                 if self.dgram_unconf[i].seq <= rcvd_ack:
                     self.dgram_unconf.pop(i)
+                    self.resendTimer = time.time()
                     i -= 1
                     j -= 1
                 i += 1
@@ -264,6 +275,14 @@ class Connection:
             for dgram in self.dgram_unconf:
                 debugLog("Resending data")
                 self.socket.addToOutput(self.otherAddress,dgram)
+
+            if self.missedKeeps >= 3:
+                self.state = STATE.CLOSED
+                return
+            if len(self.dgram_unconf) == 0:
+                new_dgram.setFlag(util.FLAG.KEP,True)
+                self.socket.addToOutput(self.otherAddress,new_dgram)
+                self.missedKeeps += 1
 
         self.resendTimer = time.time()
         self.stateCond.release()

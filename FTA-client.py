@@ -6,6 +6,7 @@ from util import debugLog
 import os.path
 import cmd
 import readline
+import connection
 
 MAXFILESIZE = 1024000
 
@@ -29,10 +30,16 @@ class ClientCmd(cmd.Cmd):
         self.client.connect()
 
     def do_get(self,line):
-        self.client.get(line)
+        try:
+            self.client.get(line)
+        except Exception as e:
+            print("There was an error while retrieving the requested file.")
     
     def do_post(self,line):
-        self.client.post(line)
+        try:
+            self.client.post(line)
+        except Exception as e:
+            print("There was an error while sending the file.")
 
     def do_disconnect(self,line):
         self.client.terminate()
@@ -66,21 +73,31 @@ class FTAclient():
         self.connected = True
         debugLog("created connection with " + self.connection.otherAddress[0] + ":" + str(self.connection.otherAddress[1]))
 
+    def _get(self,l):
+        while True:
+            if self.connection.state == connection.STATE.CLOSED:
+                return ""
+            try:
+                data = self.connection.get(l,timeout=5)
+                return data
+            except Exception as e:
+                continue
+
     def get(self, F):
         if self.connected:
             self.connection.send("get")
-            ans = self.connection.get(1024)
+            ans = self._get(1024)
             if ans == "get":
                 self.connection.send(F)
                 debugLog("sent file request to server")
-                ans = self.connection.get(1024)
+                ans = self._get(1024)
                 if ans[0:8] == "got it: ":
                     fileSize = int(ans[8:])
                     self.connection.send("send file")
                     f = open(F, 'w')
                     fileData = ""
                     while len(fileData) < fileSize:
-                        fileData += self.connection.get(MAXFILESIZE)
+                        fileData += self._get(MAXFILESIZE)
                     # could debug, make sure len is exactly right
                     f.write(fileData)
                     f.close()
@@ -107,10 +124,10 @@ class FTAclient():
             fileSize = len(f.read())
             f.close()
             self.connection.send("post: "+str(fileSize))
-            ans = self.connection.get(1024)
+            ans = self._get(1024)
             if ans == "post":
                 self.connection.send(F)
-                ans = self.connection.get(1024)
+                ans = self._get(1024)
                 if ans == "send file":
                     debugLog("server ready to receive")
                     f = open(F, 'r')

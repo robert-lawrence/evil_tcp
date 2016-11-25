@@ -78,7 +78,7 @@ class Evil:
                 break
             debugLog("pack checksum: " + hex(packet.checksum)+'\n')
             debugLog("Recip: " + str(recipient)+'\n')
-            packet.printSelf()
+            #packet.printSelf()
             self.sock.sendto(packet.toString(), recipient)
             debugLog("sent: " + hex(packet.checksum))
 

@@ -10,6 +10,7 @@ class FLAG():
     SYN = FIN >> 1
     ACK = SYN >> 1
     RET = ACK >> 1
+    KEP = RET >> 1
 
 def debugLog(log):
     if  '-d' in sys.argv:
