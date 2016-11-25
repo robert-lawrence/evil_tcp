@@ -50,8 +50,7 @@ next, in a second docker window, run
     python FTA-client.py -a (serverIP) -p 5005 -d
 *instead of (serverIP), type the ip found in part one using ifconfig*
 
-    note: port 5005 must be available on the server container or EVIL will not
-        be able to bind properly, so ensure that it is available.
+note: port 5005 (or whatever your chosn port) must be available on the server container or EVIL will not be able to bind, so ensure that it is available.
 
 ## Features and Limits
 
